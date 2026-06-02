@@ -1,0 +1,189 @@
+# Specification Audit
+
+---
+
+## A. Compliance with My Proposal
+
+| Proposal Element | Spec Status | Verdict |
+|---|---|---|
+| 3-phase / 3–4 turn pipeline | ✅ Faithfully implemented (§3) | Compliant |
+| Spec loaded only in Phase 1 | ✅ Stated (§5, §7 "full specification is NOT reloaded") | Compliant |
+| Script processes LLM output, not spec | ✅ Explicit: "never parses the original spec" (§6) | Compliant |
+| JSON artifacts on disk | ✅ `/home/claude/audit_artifacts/` (§5) | Compliant |
+| Conversation summary ~500 tokens | ✅ Stated (§5) | Compliant |
+| compile_artifacts.py operations (6 checks) | ✅ All 6 present (§6) | Compliant |
+| `compiled_audit.json` as priority index, not exclusive input | ✅ Explicit NON-FILTERING GUARANTEE (§6) | Compliant |
+| Q1/Q2/Q3 test preserved | ✅ Full definition (§7 Section A) | Compliant |
+| Tier 1/Tier 2 classification | ✅ Present (§11 Rule 2, §7, §8) | Compliant |
+| Fix verification loop | ✅ Step 6 (§8) | Compliant |
+| Design Intent Filter | ✅ Step 2 (§8) | Compliant |
+| `audit_fixes.json` output | ✅ Defined (§8 Outputs) | Compliant |
+| Execution axiom extraction | ✅ Mandatory (§7 Section B) | Compliant |
+| RISK_HOTSPOTS in report | ✅ Listed in required sections (§8) | Compliant |
+| Regression flag for priority sections | ✅ Defined (§8 Step 6) | Compliant |
+| File structure (7 files) | ✅ Exact match (§9) | Compliant |
+| ~160-line SKILL.md target | ✅ Stated (§10) | Compliant |
+| 5 core rules | ⚠️ **6 rules** instead of 5 | Minor deviation — see below |
+| Verbatim traceability in extraction | ✅ Explicit requirement (§5) | Compliant |
+| Conversation output = summary only | ✅ (§5) | Compliant |
+
+**Overall: ~95% compliant.** One addition (Rule 6), which I'll assess below.
+
+---
+
+## B. Inconsistencies
+
+### B1. Rule count: 5 proposed → 6 specified (MINOR — ACCEPT)
+
+I proposed 5 global rules. The spec has 6: it split my "Evidence Only / HARD GATE" into two:
+- Rule 5 (Efficiency) = "each phase may only access declared inputs"
+- Rule 6 (Input Boundary Enforcement) = "discard all non-declared context, INSUFFICIENT INPUTS gate, self-heal"
+
+**Verdict:** This is a **valid refinement**, not a contradiction. Rule 6 adds operational detail (what to do when inputs are missing, how to self-heal). **Accept.**
+
+### B2. Phase 2 "full artifact scan" contradicts token-efficiency goal (TENSION)
+
+§7 Section A says:
+
+> Contradiction analysis MUST include BOTH:
+> 1. Candidate-first review
+> 2. **Full artifact scan** — independently scan contracts.json, tokens.json, and section-reference evidence for contradictions **not pre-flagged** by the script
+
+This means the LLM must scan ~15k tokens of raw JSON artifacts in addition to the ~2k compiled_audit.json. This partially undermines the script's value — the script was supposed to reduce what the LLM needs to scan.
+
+**However**, the NON-FILTERING GUARANTEE (§6) correctly mandates this. The script catches mechanical issues; the LLM catches semantic ones. Both are needed.
+
+**Verdict:** Not an inconsistency — it's a **deliberate design tension** between token savings and audit thoroughness. The spec correctly resolves it: script output is the *priority* input, full artifacts are the *completeness* input. **Accept, but SKILL.md should make the two-pass strategy explicit** (scan compiled_audit first, then sweep artifacts for anything missed).
+
+### B3. Phase 2 runtime context loading is too broad (REAL ISSUE)
+
+§7 Section B says:
+
+> the auditor MUST load all specification segments matching **any** of the following exact Phase 1 categories:
+> - Foundational Rules / Laws
+> - Single Sources of Truth (SSOTs)
+> - Interfaces & Contracts
+> - Runtime Execution & UI Flows
+> - Persistence & Storage and DB
+> - Output / Execution Artifacts
+
+That's **every category**. Loading all categories = reloading the entire spec, which defeats the purpose of the 3-phase architecture.
+
+My proposal said: *"Read ONLY sections classified as 'Runtime', 'Laws', or 'Persistence'"* — 3 categories, not 6.
+
+**Verdict: REJECT this clause.** Replace with:
+
+> Load segments matching:
+> - Runtime Execution & UI Flows
+> - Foundational Rules / Laws
+> - Persistence & Storage and DB
+> - All sections where `priority = true`
+
+This covers execution validation needs without reloading the full spec. SSOTs and Interfaces are already captured in `contracts.json` and `tokens.json` artifacts.
+
+### B4. Extraction Integrity Check Step 4 — "Suspicion Threshold" is vague (MINOR)
+
+§5 Step 4:
+
+> - callable signatures = 0 **while specification contains code or APIs**
+> - token groups = 0 **while multiple sections reference identifiers**
+
+The conditions "while specification contains code or APIs" and "while multiple sections reference identifiers" require the LLM to re-read or remember the spec after extraction. This creates an implicit spec dependency.
+
+**Verdict:** Rephrase to use artifact-internal signals only:
+
+> - callable signatures = 0 AND segments.json contains sections categorized as "Interfaces & Contracts"
+> - token groups = 0 AND segments count > 10
+
+This keeps the check self-contained within Phase 1 outputs.
+
+### B5. `contracts.json` has both normalized and verbatim signature fields (REDUNDANCY)
+
+The schema includes:
+- `signature` (normalized form)
+- `exact_signature_quote` (verbatim)
+
+The script uses `signature` for mechanical comparison. Phase 2 uses `exact_signature_quote` for evidence.
+
+**Verdict: Not an inconsistency** — both serve distinct purposes. But SKILL.md should clarify: "the script compares `signature` fields; the LLM cites `exact_signature_quote` fields." **Accept with annotation.**
+
+### B6. Phase 2 ARTIFACT_STRUCTURE_ERROR classification is premature (MINOR)
+
+§7 says artifact consistency errors should be classified as Tier 1 with default severity HIGH. But these aren't spec contradictions — they're extraction quality issues. Mixing them with genuine spec findings could confuse the user.
+
+**Verdict:** Reclassify as a **separate diagnostic section** in the report (e.g., `EXTRACTION_WARNINGS`), not as Tier 1 findings. Or keep them, but flag them distinctly with issue type `ARTIFACT_STRUCTURE_ERROR` so users can filter them out. The spec does use a distinct type — so **accept with the understanding that Phase 3 must visually separate them from spec-level findings.**
+
+---
+
+## C. Noise Identification
+
+### C1. Section 2 "Core Design Principle" — Token problem explanation (NOISE)
+
+Lines 19–55. The entire section explains *why* the architecture exists. This is useful for a human reader but **irrelevant to the LLM implementing the skill**. The LLM doesn't need to understand the token economics — it needs to follow the phase instructions.
+
+**Recommendation:** Remove from the spec that the LLM will consume. Keep in a separate design-rationale document if desired.
+
+### C2. Section 4 "Token Efficiency" table (NOISE)
+
+Lines 89–107. Same issue — this is justification, not instruction. The LLM doesn't need to know estimated token counts or percentage reductions.
+
+**Recommendation:** Remove entirely.
+
+### C3. Section 12 "Preserved Quality Mechanisms" table (NOISE)
+
+Lines 1122–1135. This table lists mechanisms "unchanged from previous system." The LLM building the skill has no memory of the previous system. What matters is whether each mechanism is properly defined *in this spec* — and they all are (in §7, §8, §11).
+
+**Recommendation:** Remove. It's a changelog note, not an instruction.
+
+### C4. Section 13 "Future Enhancements" (NOISE)
+
+Lines 1138–1163. Not V1. Should not be in the implementation spec.
+
+**Recommendation:** Remove entirely. Track separately.
+
+### C5. Section 14 "Summary" table (NOISE)
+
+Lines 1166–1178. Recap of what's already specified above. Adds no new information.
+
+**Recommendation:** Remove.
+
+### C6. Duplicate extraction summary example (NOISE)
+
+The extraction summary example appears **twice**: once at line 374–381, again at line 428–433. Nearly identical.
+
+**Recommendation:** Keep only one (the more complete version at lines 428–433, which includes section references count).
+
+### C7. `compiled_audit.json` output schema example is too sparse (WEAK)
+
+Lines 589–599 show an example with empty arrays. This is less useful than a populated example. The LLM implementing the script benefits from seeing actual candidate structures.
+
+**Recommendation:** Replace with a populated example showing at least one entry per array.
+
+---
+
+## Summary Verdict
+
+| Category | Count | Items |
+|---|---|---|
+| **Compliant** | 19/20 elements | All core architecture elements |
+| **Inconsistencies** | 2 real, 2 minor | B3 (runtime context too broad), B4 (suspicion threshold vague), B5 (minor annotation), B6 (minor classification) |
+| **Noise** | 7 sections | C1–C7: design rationale, changelog, future work, duplicates |
+
+### Recommendation: **CONDITIONAL ACCEPT**
+
+Accept the spec with these **mandatory corrections**:
+
+1. **§7 Section B runtime context loading:** Reduce from 6 categories to 3 + priority sections (B3)
+2. **§5 Step 4 suspicion thresholds:** Rephrase to use artifact-internal signals only (B4)
+
+And these **noise removals** for the implementation-ready version:
+
+- Remove §2 (token problem explanation)
+- Remove §4 (token efficiency metrics)
+- Remove §12 (preserved mechanisms table)
+- Remove §13 (future enhancements)
+- Remove §14 (summary table)
+- Deduplicate extraction summary example
+- Populate compiled_audit.json example
+
+After these corrections, the spec is **implementation-ready** with an estimated **~25% line reduction** (from 1,179 to ~880 lines) — all signal, no noise.

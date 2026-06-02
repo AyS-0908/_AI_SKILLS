@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node --check skill_github_adapter.js)",
+      "Bash(node --check skill_manifest_service.js)",
+      "Bash(node --check skill_sync_planner.js)",
+      "Bash(node --check skill_sync_executor.js)",
+      "Bash(node --check skill_ui_menu.js)",
+      "Bash(node --check skill_sheet_adapter.js)",
+      "Read(//c/Users/aymar/**)",
+      "Bash(powershell.exe -File ./clasp.ps1 show-authorized-user)",
+      "Bash(powershell.exe -File ./clasp.ps1 deployments)",
+      "Bash(powershell.exe -File ./clasp.ps1 versions)",
+      "Bash(powershell.exe -File ./clasp.ps1 safe-status)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(./clasp.ps1 safe-push *)",
+      "Bash(mkdir -p \"/c/Users/aymar/OneDrive/3_ PRO AYS/_IT and AI/SKILLS MGT ADDON/.claude/skills/verifier-appsscript\")",
+      "Bash(powershell -NoProfile -ExecutionPolicy Bypass -File .\\\\clasp.ps1 safe-status)",
+      "Bash(node -e \"const j=JSON.parse\\(require\\('fs'\\).readFileSync\\('appsscript.json','utf8'\\)\\);console.log\\('json_ok=true'\\);console.log\\('scopes=',JSON.stringify\\(j.oauthScopes\\)\\);console.log\\('keys=',Object.keys\\(j\\).sort\\(\\).join\\(','\\)\\);console.log\\('executionApi=',j.executionApi===undefined?'absent':'present'\\);console.log\\('webapp=',JSON.stringify\\(j.webapp\\)\\);\")",
+      "Bash(node --check skill_config.js)",
+      "Bash(node --check skill_drive_adapter.js)",
+      "Bash(node --check skill_validator.js)",
+      "Bash(node --check skill_logging.js)",
+      "Bash(node -e \"const j=JSON.parse\\(require\\('fs'\\).readFileSync\\('appsscript.json','utf8'\\)\\);const fail=\\(m\\)=>{console.error\\('FAIL: '+m\\);process.exit\\(1\\)};if\\(j.executionApi!==undefined\\)fail\\('executionApi must be absent'\\);if\\(!j.webapp\\)fail\\('webapp block missing \\(prompt_as_api needs it\\)'\\);if\\(!Array.isArray\\(j.oauthScopes\\)||j.oauthScopes.length===0\\)fail\\('oauthScopes empty'\\);const need=['https://www.googleapis.com/auth/spreadsheets.currentonly','https://www.googleapis.com/auth/drive.readonly','https://www.googleapis.com/auth/script.container.ui','https://www.googleapis.com/auth/script.external_request','https://www.googleapis.com/auth/userinfo.email'];for\\(const s of need\\)if\\(j.oauthScopes.indexOf\\(s\\)===-1\\)fail\\('missing scope: '+s\\);if\\(j.runtimeVersion!=='V8'\\)fail\\('runtimeVersion must be V8'\\);console.log\\('manifest_ok=true'\\);console.log\\('scopes='+j.oauthScopes.length\\);console.log\\('executionApi=absent'\\);console.log\\('webapp=present'\\);\")",
+      "Bash(powershell -NoProfile -ExecutionPolicy Bypass -File \"c:/Users/aymar/OneDrive/3_ PRO AYS/_IT and AI/SKILLS MGT ADDON/clasp.ps1\" safe-status)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\aymar\\OneDrive\\3_ PRO AYS\\_IT and AI\\SKILLS MGT ADDON\\.claude\\skills"
+    ]
+  }
+}
