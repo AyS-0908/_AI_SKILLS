@@ -1,7 +1,7 @@
 ---
 name: skill-creator-addon
 description: >
-  Quality gates that wrap Anthropic's skill-creator. Forces explicit skill-type
+  Quality gates that wrap an AI-Agent's skill-creator skill. Forces explicit skill-type
   classification, collision check against existing skills in AyS-0908/SKILLS,
   gotchas inventory, three-part description, structural lint, and final
   checklist.
@@ -15,7 +15,7 @@ status: active
 
 # Skill Creator Addon — Quality Gates
 
-This skill is a wrapper. It does NOT replace Anthropic's `skill-creator`. It runs alongside it: gates fire at four marked moments inside the standard workflow.
+This skill is a wrapper. It does NOT replace an AI-Agent's `skill-creator`. It runs alongside it: gates fire at four marked moments inside the standard workflow.
 
 | Point | When (inside skill-creator) | Gate |
 |---|---|---|
