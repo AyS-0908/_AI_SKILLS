@@ -1,14 +1,25 @@
-# Skills Management Cockpit
+# AI Skills — Local Workbench
 
-The source code for this project is in:
+This folder is the local place to create, edit, and review AI agent skills.
 
-```
-C:\Users\aymar\Github_Repos\SKILLS\.cockpit\
-```
+## Live skill folders
 
-Open **that folder** in VS Code to work on the cockpit.
+- `skill-appscript`
+- `skill-n8n`
+- `skill-skill-creator-addon`
 
-All `.js` files, `AGENTS.md`, `CLAUDE.md`, `clasp.ps1` etc. live in the git repo and are versioned on GitHub at:
+## Current publishing rule
 
-👉 https://github.com/AyS-0908/SKILLS/tree/main/.cockpit
+Agents consume the published skills repo:
 
+https://github.com/AyS-0908/SKILLS
+
+Do not use the old Google Drive / Apps Script cockpit flow unless explicitly revived.
+
+## Important note
+
+This local folder currently has its own Git remote:
+
+https://github.com/AyS-0908/AI_SKILLS
+
+Before publishing skills for agents, sync/copy the active `skill-*` folders into `AyS-0908/SKILLS/skills/` and update `sync_manifest.json`.
