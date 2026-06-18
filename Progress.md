@@ -1,10 +1,10 @@
 # Progress.md - AI Skills
 
-Last updated: 2026-06-03
+Last updated: 2026-06-18
 
 ## Current Objective
 
-Clarify the AI skills management workflow and remove confusion with the old Apps Script cockpit.
+Author and harden the `skill-hostinger` VPS-maintenance skill, including an automated weekly VPS review.
 
 ## Done
 
@@ -13,9 +13,14 @@ Clarify the AI skills management workflow and remove confusion with the old Apps
 - Confirmed `code-SKILLS_COCKPIT` is the old Google Drive -> Apps Script -> GitHub cockpit.
 - Rewrote `README.md` to describe this folder correctly.
 - Added project harness docs.
+- Created `skill-hostinger/` (SKILL.md + reference/: stack, diagnostics, backup-restore, status-template, weekly-review).
+- Reverse-engineered the n8n orchestrator email contract (POST /webhook/orchestrator, subflow_id=message,
+  service=email_send, payload.confirm=true required to actually send) and documented it in `reference/weekly-review.md`.
 
 ## In Progress
 
+- Weekly VPS review automation: pending two secrets from the user (PROJECT_API_KEY + PROJECT_NAME from the
+  n8n `projects` data table) to run a manual test send and then create the weekly schedule.
 - Publishing workflow from local workbench to `AyS-0908/SKILLS` still needs a dedicated command/script if desired.
 
 ## Blocked
@@ -24,12 +29,13 @@ Clarify the AI skills management workflow and remove confusion with the old Apps
 
 ## Next Action
 
-Decide whether to add a small publish script that copies approved `skill-*` folders into the `AyS-0908/SKILLS` repo structure and updates `sync_manifest.json`.
+Get PROJECT_API_KEY + PROJECT_NAME, run a one-off `confirm:true` test email through the orchestrator, then
+create the weekly schedule for the VPS review.
 
 ## Last Verification
 
-- Date: 2026-06-03
-- Method: local folder inspection, Git remote/status checks, GitHub manifest check
+- Date: 2026-06-18
+- Method: local folder inspection; n8n orchestrator + message subflow read via MCP; Git remote/status checks
 - Result: pass
 
 ## Known Risks
