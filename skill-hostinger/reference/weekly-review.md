@@ -3,6 +3,9 @@
 Reviews the VPS using the weekly maintenance email only. **No VPS access needed.**
 Runs entirely inside n8n, where internet and Gmail sending already work.
 
+**Status: ACTIVE since 2026-06-18.** First live run expected Mon 2026-06-22 (first real report after activation).
+Parser verified on the real report; no live delivery yet (no historical email was available to test sending).
+
 ## Architecture (current — built 2026-06-18)
 
 n8n workflow **"VPS Weekly Review"** (id `0WyF42knSiTROPzv`,

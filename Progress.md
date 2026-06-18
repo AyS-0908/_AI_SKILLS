@@ -29,11 +29,11 @@ Author and harden the `skill-hostinger` VPS-maintenance skill, including an auto
 - Built + verified n8n workflow "VPS Weekly Review" (id 0WyF42knSiTROPzv): Gmail Trigger (polls for the
   Brevo report) -> Code (deterministic parser, no LLM) -> Gmail send. Parser test on the real report:
   disk 11%, 18 updates incl. Docker stack, 14 containers healthy -> correct HTML review.
+- User ACTIVATED the workflow on 2026-06-18. No historical report email was available for a manual send
+  test, so the first live run will be the next real report (expected Mon 2026-06-22).
 
 ## In Progress
 
-- User to do the real end-to-end test (restore one report email so the trigger fires) and ACTIVATE the
-  workflow in n8n (toggle active).
 - Publishing workflow from local workbench to `AyS-0908/SKILLS` still needs a dedicated command/script if desired.
 
 ## Watch items
@@ -49,15 +49,17 @@ Author and harden the `skill-hostinger` VPS-maintenance skill, including an auto
 
 ## Next Action
 
-User restores one VPS report email + activates the "VPS Weekly Review" n8n workflow; optionally run one
-real manual send to confirm delivery. Then the weekly automation is fully live.
+Observe the first live run on Mon 2026-06-22 (a "VPS Weekly Review" email should arrive after the report).
+If it does not: check the workflow execution log (0WyF42knSiTROPzv) and the Gmail_Perso OAuth token
+(publish the Google consent screen if it expired).
 
 ## Last Verification
 
 - Date: 2026-06-18
-- Method: orchestrator email path tested via curl (exec 120) and n8n MCP execute_workflow (exec 122), both ok:true
-  with Gmail message_id; weekly cloud routine created and updated to the MCP send method
-- Result: pass (cloud-session MCP send pending final confirmation)
+- Method: n8n workflow 0WyF42knSiTROPzv parser verified on the real report (exec 125): disk 11%, 18 updates
+  incl. Docker stack, 14 containers healthy -> correct review HTML. Gmail credentials auto-linked. Workflow
+  activated by user.
+- Result: pass (live delivery to be confirmed on first real report)
 
 ## Known Risks
 
