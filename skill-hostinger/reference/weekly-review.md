@@ -1,74 +1,61 @@
-# Weekly VPS review — automated routine
+# Weekly VPS review — automation (n8n-native)
 
 Reviews the VPS using the weekly maintenance email only. **No VPS access needed.**
-The whole job: read one email → analyze → email recommendations via the existing n8n orchestrator.
+Runs entirely inside n8n, where internet and Gmail sending already work.
 
-## Schedule
+## Architecture (current — built 2026-06-18)
 
-- Run weekly, e.g. **Monday 12:00 Europe/Paris** (the report arrives ~11:00). Set up with the `schedule` skill.
-- The scheduled run must have the **Gmail connector** and **n8n** access (or HTTP access to the
-  orchestrator webhook). Verify at creation.
-
-## Step 1 — Read the latest report (Gmail, read-only)
-
-Search Gmail for:
+n8n workflow **"VPS Weekly Review"** (id `0WyF42knSiTROPzv`,
+https://n8n.sourcinno.com/workflow/0WyF42knSiTROPzv):
 
 ```
-from:aymard.de.scorbiac@10321917.brevosend.com subject:"[VPS] Weekly Maintenance Report" newer_than:8d
+Gmail Trigger ("On VPS Report Email")
+   - polls hourly, filter q:
+     from:aymard.de.scorbiac@10321917.brevosend.com subject:"[VPS] Weekly Maintenance Report"
+   - simple:false (returns full body in $json.text); readStatus: both
+   - credential: Gmail_Perso
+        |
+        v
+Code ("Analyze Report", runOnceForAllItems, deterministic — no LLM)
+   parses the report body and builds emailSubject + emailHtml:
+   - disk root Use%   -> green <70, amber 70-85, red >85
+   - "<N> packages can be upgraded" -> N
+   - Docker stack pending? (docker-ce | containerd.io | docker-compose-plugin)
+        -> if yes: recommend a Hostinger snapshot BEFORE updating (daemon restart cycles all containers)
+   - container count ("Up") + unhealthy flag (unhealthy|Restarting|Exited|Dead)
+   - quotes the report's "REMINDER" block verbatim
+   - overall verdict (red if disk>85 or unhealthy; amber if docker-stack or disk>=70; else green)
+        |
+        v
+Gmail ("Email Recommendations", message:send, html)
+   - to: aymard.de.scorbiac@gmail.com ; credential: Gmail_Perso
 ```
 
-Take the most recent thread, read the plain-text body. If none found this week, skip to Step 3 and send a
-"⚠️ weekly report not received" alert instead of an analysis.
+## Why not a Claude cloud routine (the path we abandoned)
 
-## Step 2 — Analyze (apply ../SKILL.md logic)
+A Claude cloud routine was created first (`trig_01QPTysp4mBbYa9yb4yjjvtN`) but **disabled** because the
+cloud sandbox: (a) has no outbound internet (curl to n8n fails), and (b) its n8n connector exposes only a
+read-only tool subset (no `execute_workflow`), and (c) the Gmail connector can only draft, not send.
+So a cloud routine cannot send email. The n8n-native workflow above avoids all three limits.
 
-From the report body, assess and summarize with risk tags:
+> The orchestrator itself is healthy — the curl failure was the sandbox's missing egress, not n8n.
+> Any caller with normal internet can still POST to the orchestrator webhook.
 
-- **Disk** — `Use%` of root. 🟢 < 70%, 🟡 70–85%, 🔴 > 85%.
-- **Docker disk** — note `RECLAIMABLE`. Only suggest cleanup if it's non-trivial (e.g. > ~2 GB). 0% = do nothing.
-- **Container health** — flag any not `healthy` / `Up`. All healthy = 🟢.
-- **OS updates** — separate routine security updates (apply anytime) from the **Docker stack**
-  (`docker-ce`, `containerd.io`, `docker-compose-plugin`): those restart the Docker daemon and briefly
-  cycle every container → 🟡, recommend a **Hostinger snapshot first** (report reminder #2: `docker-snapshot-helper.sh`).
-- **Manual reminders** — surface report's reminders #1–3 (check Coolify/n8n versions; verify sourcinno.com).
+## Code-node gotcha (learned the hard way)
 
-Produce a short HTML email: one-line overall verdict, then bullet findings with tags, then a
-"Recommended this week" action list. Keep it skimmable.
+When generating the Code node via the n8n SDK, regex backslashes were corrupted because the jsCode was
+embedded in a template literal (`\s`, `\d`, `\/` collapsed). Fix: set `/jsCode` via `update_workflow`
+`setNodeParameter` with properly escaped backslashes, or write the parser with string methods (no regex).
 
-## Step 3 — Send via the existing n8n orchestrator
+## To send via the orchestrator instead (alternative, e.g. from a normal-internet caller)
 
-**Endpoint:** `POST https://n8n.sourcinno.com/webhook/orchestrator`
-**Header:** `X-API-Key: <PROJECT_API_KEY>`  ← secret, provided at setup; never hard-code in the skill
-**Body:**
+The least-privilege project `vps-review` (capability `message:send`) is still in the `projects` data table.
+Call: `POST https://n8n.sourcinno.com/webhook/orchestrator`, header `X-API-Key: <vps-review key>`, body
+`{request_id, project:"vps-review", subflow_id:"message", operation:"send", service:"email_send",
+payload:{to,subject,body,confirm:true}}`. `confirm:true` is mandatory or it only previews.
 
-```json
-{
-  "request_id": "vps-weekly-<YYYY-MM-DD>",
-  "project": "<PROJECT_NAME>",
-  "subflow_id": "message",
-  "operation": "send",
-  "service": "email_send",
-  "payload": {
-    "to": "aymard.de.scorbiac@gmail.com",
-    "subject": "VPS Weekly Review — <YYYY-MM-DD>",
-    "body": "<html> ...analysis... </html>",
-    "confirm": true
-  }
-}
-```
+## Maintenance notes
 
-### Critical details (verified from the orchestrator + message subflow)
-
-- `payload.confirm: true` is **required to actually send.** `email_send` is a risky service; without it the
-  orchestrator forces a dry-run and only returns a `planned_action` preview (no email goes out).
-- Required payload fields: `to`, `subject`, `body` (HTML). Optional: `cc`, `bcc`, `sender_name`, `reply_to`.
-- `request_id` is idempotency-keyed per `(project, request_id)` — use a fresh one each week
-  (the date) or a repeat send returns the cached result instead of sending again.
-- The project (identified by `X-API-Key`) must have capability `message:send` in its `allowed_capabilities`.
-- Success = HTTP 200, `ok: true`, `data.message_id` populated. Other statuses: 401 auth, 403 capability,
-  400 invalid payload, 502 subflow error.
-
-## Two secrets needed at setup (do NOT store in the skill repo)
-
-1. `PROJECT_API_KEY` — the X-API-Key for the project allowed to call `message:send`.
-2. `PROJECT_NAME` — must match that key's owner exactly.
+- Don't delete the weekly report before the trigger polls it (hourly), or that week is skipped.
+- Gmail_Perso OAuth: if the Google consent screen is in "Testing", the token expires ~weekly — publish it.
+- To pause: toggle the workflow inactive in n8n. To change recipient/threshold: edit the Code node.

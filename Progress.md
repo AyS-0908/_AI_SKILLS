@@ -24,10 +24,16 @@ Author and harden the `skill-hostinger` VPS-maintenance skill, including an auto
 - Discovered the Claude cloud sandbox blocks outbound HTTP (curl to n8n fails), so the routine sends via the
   n8n MCP connector instead of curl. The orchestrator itself is unaffected — only the sandbox lacks egress.
 
+- Pivoted the weekly automation OUT of the Claude cloud routine (sandbox has no internet egress and its n8n
+  connector exposes no send/execute tool) and INTO a native n8n workflow. Disabled the cloud routine.
+- Built + verified n8n workflow "VPS Weekly Review" (id 0WyF42knSiTROPzv): Gmail Trigger (polls for the
+  Brevo report) -> Code (deterministic parser, no LLM) -> Gmail send. Parser test on the real report:
+  disk 11%, 18 updates incl. Docker stack, 14 containers healthy -> correct HTML review.
+
 ## In Progress
 
-- Final confirmation that the cloud routine's MCP send works from inside the cloud session (awaiting the
-  test-run alert email / new orchestrator execution).
+- User to do the real end-to-end test (restore one report email so the trigger fires) and ACTIVATE the
+  workflow in n8n (toggle active).
 - Publishing workflow from local workbench to `AyS-0908/SKILLS` still needs a dedicated command/script if desired.
 
 ## Watch items
@@ -43,7 +49,8 @@ Author and harden the `skill-hostinger` VPS-maintenance skill, including an auto
 
 ## Next Action
 
-Confirm the cloud test run sent its alert email via the n8n MCP path; once confirmed, the weekly automation is live.
+User restores one VPS report email + activates the "VPS Weekly Review" n8n workflow; optionally run one
+real manual send to confirm delivery. Then the weekly automation is fully live.
 
 ## Last Verification
 
