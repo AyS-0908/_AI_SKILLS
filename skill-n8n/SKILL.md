@@ -28,10 +28,13 @@ If intent is ambiguous, ask the user which one. Do not pick two.
 
 ## 2. Knowledge sources — priority order, cite inline
 
+This skill is the **governance layer**. Node build mechanics belong to the official n8n skills + MCP — defer, do not duplicate.
+
 | Tag to use | Source | When |
 |---|---|---|
 | `[n8n orchestrator]` | [reference/n8n-orchestrator-contract.md](reference/n8n-orchestrator-contract.md) | Always — read before any design touching `search` / `publish` / `create` / `message` |
-| `[n8n MCP]` | `mcp__claude_ai_n8n__*` tools | Volatile facts: node names, parameters, expressions, validation, templates |
+| `[n8n skill]` | official n8n skills (`n8n-node-configuration`, `n8n-expressions`, `n8n-loops`, `n8n-code-nodes`, `n8n-error-handling`, `n8n-credentials-and-security`, `n8n-binary-and-data`, `n8n-data-tables`, `n8n-subworkflows`, `n8n-agents`, `n8n-debugging`) | Any node-level build mechanics — table in [n8n-build.md](n8n-build.md) |
+| `[n8n MCP]` | `mcp__*_n8n__*` tools | Volatile live facts: node names, parameters, expressions, validation, templates. Authoritative over skill text |
 | `[n8n doc]` | https://docs.n8n.io/ | Standard concepts (triggers, expressions, item model) |
 | `[internal memory]` | cross-session preferences | Only if previously saved |
 

@@ -1,318 +1,36 @@
-# n8n Orchestrator — Contract
+# n8n Orchestrator — Contract (pointer)
 
-Factual reference for the user's existing orchestrator (single webhook entry point fronting registered sub-workflows). Read before any design or audit that touches `search | publish | create | message`.
-
----
-
-## DECISION — Use orchestrator or not?
-
-### USE FULLY — call the orchestrator gateway
-
-```yaml
-trigger_when_ALL_true:
-  - workflow needs capability already in registered routes: search | publish | create | message
-  - operation = one of:
-      search:  [web_search, linkedin_fetch, reddit_fetch]
-      publish: [linkedin_draft, linkedin_publish_after_approval]
-      create:  [text_generation]
-      message: [email_send]
-  - caller is a registered project with api_key
-  - one service per request
-  - sync response acceptable (no callbacks, no async)
-  - body <= 1MB, files passed by reference (<=20 refs)
-```
-
-### USE PARTIALLY — extend the orchestrator, do not bypass it
-
-```yaml
-extend_when:
-  - new capability fits an existing route family (search/publish/create/message)
-    → add a Switch branch INSIDE the existing domain subflow
-    → do NOT create a new top-level workflow
-
-  - new connector is shared by >=2 domain subflows
-    → extract it as its own workflow, called from the subflows
-
-  - new internal validation/review needed inside a subflow
-    → additive only; MUST NOT bypass master confirm/dry-run/policy
-```
-
-### DO NOT USE — build a standalone n8n workflow
-
-```yaml
-skip_orchestrator_when_ANY_true:
-  - capability belongs to a deferred route (rag, deployer, agents_ia)
-    → would return unknown_subflow
-
-  - workflow is internal-only, single trusted user, no credential isolation needed
-
-  - requires multi-service in one request (v1 rejects this)
-
-  - requires async / callback_url / job polling (not v1)
-
-  - raw file upload required (not allowed)
-
-  - retention > 365 days, or volume above migration thresholds
-      (>50k req/mo, >250k audit, >100k idempotency, latency >2s)
-```
+> **Single source of truth — do NOT duplicate the full contract here.**
+> This file is a pointer + cheat-sheet. The authoritative contract lives in the orchestrator project:
+> - **Caller / AI-skill contract:** `C:\Users\aymar\AYS_CODING\code-N8N_ORCHESTRATOR\n8n_orchestrator_introduction.txt`
+> - **Full behavior spec:** `C:\Users\aymar\AYS_CODING\code-N8N_ORCHESTRATOR\n8n_orchestrator_specification_v_1_2.txt`
+> - **Scope rules (V1 denylist, connectors):** `C:\Users\aymar\AYS_CODING\code-N8N_ORCHESTRATOR\AGENTS.md`
+>
+> Read the source file before any design or audit touching `search | publish | create | message`.
+> If those files are unreachable, use the cheat-sheet below and label `[ASSUMPTION: contract not verified live]`.
 
 ---
 
-## HOW TO CALL — caller side
+## Cheat-sheet (decision + shape only — verify against source)
 
-### Request shape
+**Routes / operations**
+- `search`: `web_search`, `linkedin_fetch`, `reddit_fetch`
+- `publish`: `linkedin_draft`, `linkedin_publish_after_approval`
+- `create`: `text_generation`
+- `message`: `email_send`
 
-```json
-{
-  "request_id": "<unique per intended side effect>",
-  "project": "<registered_project_id>",
-  "subflow_id": "search | publish | create | message",
-  "operation": "<allowed operation for that route>",
-  "payload": {
-    "...": "operation-specific",
-    "confirm": true
-  },
-  "api_version": "v1",
-  "service": null,
-  "options": {
-    "dry_run": false
-  }
-}
-```
+**Use orchestrator when ALL true:** capability ∈ routes above · one service/request · sync response · body ≤1MB, files by reference. **Extend (don't bypass)** when a new capability fits a route family → add a Switch branch inside the existing domain subflow. **Skip** for deferred routes (`rag`, `deployer`, `agents_ia`), multi-service, async/callback, raw file upload.
 
-### Caller MUST NOT include
+**Risky ops** (`publish | post | deploy | delete | paid_ai_generation | restricted_extract | send`): two-call confirm. Call 1 (no `confirm`) → `pending_validation` + `planned_action`, no side effect. Call 2 (same `request_id`, `payload.confirm=true`) → executes; duplicate returns prior result. `options.dry_run=true` validates only.
 
-- API keys, tokens, secrets
-- n8n credential IDs, workflow IDs, node parameters
-- Executable code
-- `callback_url` or async fields
-- More than one service
+**Caller MUST NOT send:** API keys/tokens/secrets · credential IDs · workflow IDs · node params · executable code · `callback_url`/async · more than one service.
 
-### request_id rule
+**Three response envelopes only:** `success` (`ok:true`) · `rejected_failure` (`ok:false` + `error.{code,message,retryable}`) · `pending_validation` (`ok:false` + `planned_action` + `approval_required`).
 
-- Unique per intended side effect
-- Reuse = deliberate retry
-- Idempotency key = `(project, request_id)`
+**Invariants:** fail closed on unknown project/route/service/operation · authenticate every request · credentials stay platform-side · single service per request · references not raw files · no raw payload storage · AI side effects pass validation + approval.
 
 ---
 
-## RISKY OPERATIONS — two-call confirm
+## Sync rule
 
-Operations: `publish`, `post`, `deploy`, `delete`, `paid_ai_generation`, `restricted_extract`, `send`.
-
-### Call 1 — without `confirm`
-
-Response:
-```json
-{ "status": "pending_validation" }
-```
-Contains `planned_action` and `approval_required`. No side effect.
-
-### Call 2 — same `request_id`, `payload.confirm = true`
-
-- Executes for real.
-- Duplicate detection returns previous result if already completed.
-
-### Dry-run
-
-```yaml
-options.dry_run = true
-```
-Behavior:
-- Validates request
-- Returns `planned_action`
-- No side effect
-
-Mandatory for risky ops on first call even if `dry_run = false`.
-
----
-
-## RESPONSES — three envelope types only
-
-### success
-```yaml
-ok: true
-status: "success"
-fields:
-  - request_id
-  - project
-  - subflow_id
-  - service
-  - data
-  - warnings
-  - errors
-  - meta.orchestrator_reference
-```
-
-### rejected_failure
-```yaml
-ok: false
-fields:
-  - request_id
-  - status
-  - error.code
-  - error.message
-  - error.retryable
-```
-
-### pending_validation
-```yaml
-ok: false
-status: "pending_validation"
-fields:
-  - request_id
-  - planned_action
-  - approval_required
-```
-
-### Error codes to handle
-
-```
-validation_error
-authentication_error
-permission_error
-unsupported_service
-unsupported_operation
-unknown_subflow
-approval_required
-approval_invalid
-duplicate_request
-external_service_error
-subworkflow_error
-timeout_error
-```
-
-### Retry logic
-
-```yaml
-retry only when error.retryable = true
-
-on timeout_error with uncertain state:
-  → DO NOT auto-retry
-  → manual check
-
-on duplicate_request (in_progress):
-  → wait
-  → do not retry concurrently
-```
-
----
-
-## BUILDING A NEW SUBFLOW BRANCH
-
-### Input contract — internal normalized envelope
-
-```yaml
-[
-  request_id,
-  api_version,
-  project,
-  subflow_id,
-  operation,
-  service,
-  payload,
-  options,
-  orchestrator.received_at,
-  orchestrator.execution_reference,
-  orchestrator.contract_version
-]
-```
-
-### Output contract — success
-
-```yaml
-[
-  ok,
-  request_id,
-  subflow_id,
-  status,
-  data,
-  errors,
-  warnings,
-  meta.processed_at,
-  meta.subflow_reference
-]
-```
-
-### Output contract — failure
-
-```yaml
-[
-  ok,
-  request_id,
-  subflow_id,
-  status,
-  error:
-    {
-      code,
-      message,
-      details,
-      retryable
-    }
-]
-```
-
-### Hard rules for subflow code
-
-- Never expose secrets, credential IDs, workflow IDs.
-- Return structured errors only.
-- Respect `dry_run` — no external side effect, return `planned_action`.
-- Internal reviews are additive only — cannot bypass the master confirm flow.
-- Timeout configured on the subflow workflow itself:
-  ```yaml
-  default: 60s
-  search: 90s
-  publish: 90s
-  create: 120s
-  message: 60s
-  ```
-
-### AI inside a subflow must define
-
-- Task type
-- Allowed input context / sources
-- Expected output shape
-- Validation rules before any side effect
-- Confidence / quality checks
-- Fallback for invalid or low-confidence output
-- Human review requirement
-
----
-
-## REGISTRIES — state lives in n8n Data Tables in v1
-
-```yaml
-projects:
-  api_key
-  name
-  active
-  allowed_capabilities[json]
-  risky_ops_override[json]
-  notes
-
-allowed_capabilities format:
-  "route:operation"
-
-wildcards ok:
-  "publish:*"
-  "*:search"
-
-idempotency_keys:
-  key = (project, request_id)
-
-audit_events:
-  retention 90 days
-```
-
----
-
-## INVARIANTS — never violate
-
-- Fail closed on unknown project / route / service / operation.
-- Authenticate every gateway request.
-- Credentials stay platform-side.
-- v1 = single service per request.
-- No raw file uploads — references only.
-- No raw payload storage.
-- Audit security-relevant events.
-- AI side effects pass validation + policy approval.
+When the orchestrator contract changes, edit the **source files above** (in `code-N8N_ORCHESTRATOR`). Only refresh this cheat-sheet if a route, envelope, or invariant changes. Never let this file become a second full copy.

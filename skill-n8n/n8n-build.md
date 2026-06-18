@@ -16,26 +16,31 @@ Shared rules, knowledge sources, missing-info protocol → [SKILL.md](SKILL.md).
    - If n8n API is configured → create a **non-published** workflow. Never edit production directly.
    - Otherwise → output importable JSON with a precise build report.
 
-## Coding best practices
+## Node mechanics — defer to official sources
 
-- **Node naming.** Short, unique, descriptive. Example: `Get User from Airtable`. For AI nodes, prefix `AI - <task>` (e.g., `AI - Classify Category`) so an LLM reading the workflow understands purpose.
-- **Expressions over hardcoding.** `{{ $json.field }}`, `{{ $node["Name"].json.field }}`, `{{ $env.MY_VAR }}`.
-- **Atomic nodes.** One logical task per node. No "API call + transform" combos.
-- **Section labels.** Use Sticky Notes named `1 - Trigger`, `2 - Validate`, `3 - Process`, … for readability.
-- **Centralize config early.** Put constants in a `Set` node near the trigger. Put tokens / URLs in env vars.
-- **`continueOnFail` selectively.** Default `false`. Enable only when failure is expected AND handled downstream.
-- **Native node shortlist.** Set / IF / Switch / Merge / built-in parsers before Function or Code.
-- **Loops.** Use `Split In Batches`. Prefer bulk APIs over per-item calls.
-- **Clean JSON for delivery.** No runtime-only fields (`id`, `createdAt`). Consistent indentation. No parameter noise.
+Generic build mechanics (node naming/config, expressions, loops/batching, Code nodes, error handling, credentials, binary/data, data tables, debugging) are owned by the **official n8n skills** + **n8n MCP**. Do not re-derive them here — invoke the matching official skill and verify live with MCP:
 
-## Known gotchas — high cost if missed
+| Need | Official skill |
+|---|---|
+| Configure any node | `n8n-node-configuration` |
+| Expressions (`{{ }}`, `$json`, `$node`) | `n8n-expressions` |
+| Loops / batching / pagination | `n8n-loops` |
+| Code node logic | `n8n-code-nodes` |
+| Sub-workflows | `n8n-subworkflows` |
+| AI agent nodes / tools / prompts | `n8n-agents` |
+| Webhook reliability / error paths | `n8n-error-handling` |
+| Credentials / auth / keys | `n8n-credentials-and-security` |
+| Files / images / attachments | `n8n-binary-and-data` |
+| Persistent state / dedup | `n8n-data-tables` |
+| Troubleshooting | `n8n-debugging` |
 
-Cross-mode gotchas (Wait/HITL placement, LLM JSON parsing, MCP body check) live in [SKILL.md](SKILL.md) §Gotchas. Build-only additions:
+If the official skills are unavailable, fall back to MCP node details + [n8n doc] — never to memory for node IDs, parameter names, or expressions.
 
-- **HITL nodes invisible on the canvas?** Drop a Tools Agent node to trigger their loading.
-- **Instruct LLMs to emit valid JSON**: double quotes only, no trailing commas, numbers unquoted, exact field casing (`spreadsheetId` not `SpreadsheetID`), matched brackets.
-- **Preserve outer context inside loops.** When splitting a nested array, carry parent fields forward — e.g., `eventName` from the parent Webhook on every split child item.
-- **Dot-notation auto-expansion.** Set / Function / Code nodes auto-expand a key like `"a.b": 1` into `{ a: { b: 1 } }`. If your keys legitimately contain dots, disable via the Set node's option `Support Dot Notation = false`.
+## This skill owns (do not delegate)
+
+- **Orchestrator-first routing** — [SKILL.md](SKILL.md) §3 Hard rules + [reference/n8n-orchestrator-contract.md](reference/n8n-orchestrator-contract.md).
+- **Build discipline** — non-production delivery, validation gate, self-audit against [n8n-audit.md](n8n-audit.md) dimensions.
+- **Cross-mode gotchas** (Wait/HITL placement, LLM JSON parsing, MCP body check) → [SKILL.md](SKILL.md) §Gotchas.
 
 ## Safety
 
