@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "models": {
+    "bulk":    { "name": "gpt-5-mini", "fallback": "gpt-4o-mini", "effort": "low" },
+    "complex": { "name": "gpt-5",      "fallback": "gpt-4o",      "effort": "medium" }
+  },
+  "openai": {
+    "base_url": "https://api.openai.com/v1",
+    "endpoint": "/chat/completions",
+    "max_retries": 4,
+    "retry_base_ms": 1500,
+    "timeout_sec": 90,
+    "extract_char_cap": 12000
+  },
+  "caps": {
+    "max_ai_files": 2000,
+    "max_usd": 5.0
+  },
+  "pricing_per_mtok": {
+    "gpt-5-mini":  { "in": 0.25, "out": 2.0 },
+    "gpt-5":       { "in": 1.25, "out": 10.0 },
+    "gpt-4o-mini": { "in": 0.15, "out": 0.6 },
+    "gpt-4o":      { "in": 2.5,  "out": 10.0 }
+  },
+  "extensions": {
+    "text":  [".txt", ".md", ".markdown", ".csv", ".tsv", ".log", ".json", ".xml", ".yaml", ".yml", ".ini", ".cfg", ".conf", ".html", ".htm", ".rtf"],
+    "code":  [".ps1", ".psm1", ".py", ".js", ".ts", ".tsx", ".jsx", ".java", ".c", ".h", ".cpp", ".cs", ".go", ".rb", ".rs", ".sh", ".sql", ".r", ".php", ".css", ".scss", ".vue"],
+    "word":  [".docx"],
+    "excel": [".xlsx"],
+    "ppt":   [".pptx"],
+    "pdf":   [".pdf"],
+    "temp":  [".tmp", ".temp", ".bak", ".old", ".crdownload", ".part", ".partial", ".swp"],
+    "binary_skip": [".exe", ".dll", ".zip", ".7z", ".rar", ".gz", ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tif", ".tiff", ".mp4", ".mov", ".avi", ".mp3", ".wav", ".iso", ".msi", ".bin", ".doc", ".xls", ".ppt"]
+  },
+  "pdf_extractor": "pdftotext"
+}
