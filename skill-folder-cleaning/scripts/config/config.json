@@ -1,36 +1,50 @@
 {
-  "schema": 1,
-  "models": {
-    "bulk":    { "name": "gpt-5-mini", "fallback": "gpt-4o-mini", "effort": "low" },
-    "complex": { "name": "gpt-5",      "fallback": "gpt-4o",      "effort": "medium" }
+  "schema": 3,
+  "runtime": {
+    "requires_pwsh": "7.2",
+    "note": "PowerShell performs deterministic inventory, validation, rendering, apply and rollback preparation. The host agent performs semantic organization."
   },
-  "openai": {
-    "base_url": "https://api.openai.com/v1",
-    "endpoint": "/chat/completions",
-    "max_retries": 4,
-    "retry_base_ms": 1500,
-    "timeout_sec": 90,
-    "extract_char_cap": 12000
+  "extraction": {
+    "extract_char_cap": 12000,
+    "zip_entry_byte_cap": 5000000,
+    "zip_total_byte_cap": 50000000,
+    "pdf_max_pages": 20
   },
-  "caps": {
-    "max_ai_files": 2000,
-    "max_usd": 5.0
+  "analysis": {
+    "batch_limits": {
+      "max_files": 25,
+      "max_total_chars": 120000
+    }
   },
-  "pricing_per_mtok": {
-    "gpt-5-mini":  { "in": 0.25, "out": 2.0 },
-    "gpt-5":       { "in": 1.25, "out": 10.0 },
-    "gpt-4o-mini": { "in": 0.15, "out": 0.6 },
-    "gpt-4o":      { "in": 2.5,  "out": 10.0 }
+  "organization": {
+    "level_2_min_files": 4,
+    "archive_destination": "_ARCHIVE",
+    "artifacts_dir": "_DATA_CLEANING",
+    "max_folder_depth": 2,
+    "startup_level1": [
+      "ROOT",
+      "1-MANAGEMENT",
+      "2-SOLUTION",
+      "3-CLIENT",
+      "to_review"
+    ]
+  },
+  "pdf_extractors": ["pdftotext"],
+  "tiers": {
+    "note": "Optional host guidance only; tier provenance is not part of the mandatory output contract.",
+    "bulk": "clear single-file summaries",
+    "standard": "cross-file comparison",
+    "complex": "version chains, near-duplicates, contradictions, or low confidence"
   },
   "extensions": {
-    "text":  [".txt", ".md", ".markdown", ".csv", ".tsv", ".log", ".json", ".xml", ".yaml", ".yml", ".ini", ".cfg", ".conf", ".html", ".htm", ".rtf"],
-    "code":  [".ps1", ".psm1", ".py", ".js", ".ts", ".tsx", ".jsx", ".java", ".c", ".h", ".cpp", ".cs", ".go", ".rb", ".rs", ".sh", ".sql", ".r", ".php", ".css", ".scss", ".vue"],
-    "word":  [".docx"],
+    "text": [".txt", ".md", ".markdown", ".csv", ".tsv", ".log", ".json", ".xml", ".yaml", ".yml", ".ini", ".cfg", ".conf", ".html", ".htm", ".rtf"],
+    "code": [".ps1", ".psm1", ".py", ".js", ".ts", ".tsx", ".jsx", ".java", ".c", ".h", ".cpp", ".cs", ".go", ".rb", ".rs", ".sh", ".sql", ".r", ".php", ".css", ".scss", ".vue"],
+    "word": [".docx"],
     "excel": [".xlsx"],
-    "ppt":   [".pptx"],
-    "pdf":   [".pdf"],
-    "temp":  [".tmp", ".temp", ".bak", ".old", ".crdownload", ".part", ".partial", ".swp"],
-    "binary_skip": [".exe", ".dll", ".zip", ".7z", ".rar", ".gz", ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tif", ".tiff", ".mp4", ".mov", ".avi", ".mp3", ".wav", ".iso", ".msi", ".bin", ".doc", ".xls", ".ppt"]
-  },
-  "pdf_extractor": "pdftotext"
+    "ppt": [".pptx"],
+    "pdf": [".pdf"],
+    "image": [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tif", ".tiff", ".webp", ".heic", ".ico"],
+    "temp": [".tmp", ".temp", ".bak", ".old", ".crdownload", ".part", ".partial", ".swp"],
+    "binary_skip": [".exe", ".dll", ".zip", ".7z", ".rar", ".gz", ".mp4", ".mov", ".avi", ".mp3", ".wav", ".iso", ".msi", ".bin", ".doc", ".xls", ".ppt"]
+  }
 }

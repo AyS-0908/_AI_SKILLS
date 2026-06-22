@@ -1,0 +1,17 @@
+# User guide of the SKILL:
+
+- Smoke test (no AI): pwsh scripts/run-folder-cleaning.ps1 -SourcePath <folder> -SkipAI → builds a non-approvable plan; proves the pipeline runs.
+1. Analyze: ... -SourcePath <folder> → pauses at awaiting_context. By default, artifacts land INSIDE the analyzed root under _DATA_CLEANING\<timestamp> (this folder is excluded from the scan). Override with -OutputPath <path> for any location.
+2. Context: write context.json (see reference/organization-contract.md), confirm protected items → ... -Resume → pauses at awaiting_host.
+3. Host analysis: fill batch-results/*.json + analysis-results.json → ... -Resume → produces organization-plan.json + approval-view.md.
+4. Adjust (optional): revise via ... -Resume -PlanRevisionPath <file>; inspect a folder via ... -Resume -ExpandFolder F00X. The approval view lists DECISIONS, the TARGET STRUCTURE, and a MOVES & RENAMES summary.
+5. Approve: ... -Resume -Approve → writes approval.json bound to the plan hash.
+6. Apply: ... -SourcePath <folder> -OutputPath <same-output> -Mode apply → moves files, writes transaction.json + rollback.ps1.
+7. Undo: run rollback.ps1 in the output dir (resumable; refuses if a file changed; prints a summary). To redo after a full rollback, just re-run apply.
+
+Flags for friction cases:
+- -HydrateCloud: download OneDrive cloud-only placeholders before inventory so they are analyzed instead of routed to review (immutable per run).
+- -ContinuePartial: proceed past a preflight stop (incomplete scan). Can be toggled on -Resume to clear a blocked run without starting over.
+- PDFs: if no PDF reader (poppler's pdftotext) is on PATH, the run no longer stops — PDFs keep their hash and are routed to review without text extraction. Install pdftotext on PATH to read PDF text.
+
+- Safety net: analyze only writes inside the _DATA_CLEANING artifacts folder and never modifies your existing files; apply aborts on missing/mismatched approval, changed source, or target collision; nothing is hard-deleted (archived under _ARCHIVE\).
