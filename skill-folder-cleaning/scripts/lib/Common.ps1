@@ -48,10 +48,29 @@ function Get-Config {
     return (Get-Content -LiteralPath $cfgPath -Raw -Encoding UTF8 | ConvertFrom-Json)
 }
 
+function Find-ReaderInKnownLocations {
+    # A freshly installed reader (e.g. via winget) updates PATH only for new shells, so
+    # Get-Command can miss it in the current session. Probe well-known install roots so
+    # PDF extraction works without restarting the shell. Returns a full path or $null.
+    param([string]$Leaf)
+    if ([string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)) { return $null }
+    $roots = @(
+        (Join-Path $env:LOCALAPPDATA "Microsoft\WinGet\Links"),
+        (Join-Path $env:LOCALAPPDATA "Microsoft\WinGet\Packages")
+    )
+    foreach ($root in $roots) {
+        if (-not (Test-Path -LiteralPath $root)) { continue }
+        $hit = Get-ChildItem -LiteralPath $root -Recurse -Filter $Leaf -File -ErrorAction SilentlyContinue |
+            Sort-Object FullName -Descending | Select-Object -First 1
+        if ($hit) { return $hit.FullName }
+    }
+    return $null
+}
+
 function Get-AvailablePdfReader {
-    # Return the first configured PDF reader available on PATH, or $null. Readers are
-    # expected to share the pdftotext command-line interface. Supports the legacy
-    # single-value config.pdf_extractor for backward compatibility.
+    # Return the first configured PDF reader available on PATH (or in a known install
+    # location), or $null. Readers are expected to share the pdftotext command-line
+    # interface. Supports the legacy single-value config.pdf_extractor for compatibility.
     param($Config)
     $candidates = @()
     if (Test-ObjectProperty -Object $Config -Name "pdf_extractors") { $candidates = @($Config.pdf_extractors) }
@@ -60,6 +79,13 @@ function Get-AvailablePdfReader {
         if ([string]::IsNullOrWhiteSpace("$name")) { continue }
         $command = Get-Command "$name" -ErrorAction SilentlyContinue
         if ($command) { return [pscustomobject]@{ name = "$name"; path = "$($command.Source)" } }
+    }
+    foreach ($name in $candidates) {
+        if ([string]::IsNullOrWhiteSpace("$name")) { continue }
+        $leaf = [System.IO.Path]::GetFileName("$name")
+        if (-not $leaf.ToLowerInvariant().EndsWith(".exe")) { $leaf = "$leaf.exe" }
+        $found = Find-ReaderInKnownLocations -Leaf $leaf
+        if ($found) { return [pscustomobject]@{ name = "$name"; path = $found } }
     }
     return $null
 }
