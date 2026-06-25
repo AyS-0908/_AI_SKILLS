@@ -2,7 +2,7 @@
 name: skill-creator-addon
 description: >
   Quality gates that wrap an AI-Agent's skill-creator skill. Forces explicit skill-type
-  classification, collision check against existing skills in AyS-0908/SKILLS,
+  classification, collision check against existing skills in AyS-0908/AI_SKILLS,
   gotchas inventory, three-part description, structural lint, and final
   checklist.
   Trigger for: any request to create, improve, update, or audit a skill —
@@ -43,7 +43,7 @@ User picks one:
 
 ### Q.B — Collision
 
-- Fetch the manifest from the SKILLS repo: `gh api repos/AyS-0908/SKILLS/contents/sync_manifest.json --jq '.content | @base64d'`.
+- Fetch the manifest from `C:\Users\aymar\AYS_CODING\_AI_AGENTS\skills-manifest.json`.
 - For each existing skill, compare its `description` and `triggers` against the new skill's intent.
 - For each match → label `[OVERLAP]` or `[ADJACENT]`.
 - Write one-line differentiator per match — this anchors the description later.
