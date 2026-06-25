@@ -1,10 +1,10 @@
 # Progress.md - AI Skills
 
-Last updated: 2026-06-18
+Last updated: 2026-06-25
 
 ## Current Objective
 
-Author and harden the `skill-hostinger` VPS-maintenance skill, including an automated weekly VPS review.
+Publish `skill-audit-it` and remove obsolete Audit-IT WIP source files.
 
 ## Done
 
@@ -31,6 +31,9 @@ Author and harden the `skill-hostinger` VPS-maintenance skill, including an auto
   disk 11%, 18 updates incl. Docker stack, 14 containers healthy -> correct HTML review.
 - User ACTIVATED the workflow on 2026-06-18. No historical report email was available for a manual send
   test, so the first live run will be the next real report (expected Mon 2026-06-22).
+- Published `skill-audit-it/` as the active Audit-IT skill. It audits startup-sized projects, includes
+  Tier 1/2/3 findings, and writes `_Audit-IT/audit_it__NNN_title.md` handoff files for AI coders.
+- Removed obsolete Audit-IT draft material from `x_.WIP/_audit-it/` and `x_.WIP/_audit-general.zip`.
 
 ## In Progress
 
@@ -49,17 +52,14 @@ Author and harden the `skill-hostinger` VPS-maintenance skill, including an auto
 
 ## Next Action
 
-Observe the first live run on Mon 2026-06-22 (a "VPS Weekly Review" email should arrive after the report).
-If it does not: check the workflow execution log (0WyF42knSiTROPzv) and the Gmail_Perso OAuth token
-(publish the Google consent screen if it expired).
+Refresh the generated skills manifest after the GitHub push if immediate local discovery is needed.
 
 ## Last Verification
 
-- Date: 2026-06-18
-- Method: n8n workflow 0WyF42knSiTROPzv parser verified on the real report (exec 125): disk 11%, 18 updates
-  incl. Docker stack, 14 containers healthy -> correct review HTML. Gmail credentials auto-linked. Workflow
-  activated by user.
-- Result: pass (live delivery to be confirmed on first real report)
+- Date: 2026-06-25
+- Method: Audit-IT helper scripts parsed with Python; SKILL.md trigger/output checks passed;
+  `write_audit_doc.py` created a numbered `_Audit-IT` handoff file in a temp project.
+- Result: pass
 
 ## Known Risks
 
