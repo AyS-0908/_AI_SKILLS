@@ -1,0 +1,85 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "folder-cleaning organization-plan.json",
+  "type": "object",
+  "required": [
+    "schema",
+    "run_id",
+    "source",
+    "approvable",
+    "manifest_complete",
+    "source_hash_index",
+    "folders",
+    "entries",
+    "warnings"
+  ],
+  "properties": {
+    "schema": { "const": 3 },
+    "run_id": { "type": "string" },
+    "source": { "type": "string" },
+    "mode": { "const": "analyze" },
+    "approvable": { "type": "boolean" },
+    "manifest_complete": { "type": "boolean" },
+    "continue_partial": { "type": "boolean" },
+    "preflight_approval_blocked": { "type": "boolean" },
+    "source_hash_index": {
+      "type": "object",
+      "additionalProperties": { "type": ["string", "null"] }
+    },
+    "folders": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["internal_id", "path", "file_count"],
+        "properties": {
+          "internal_id": { "type": "string" },
+          "display_id": { "type": "string", "pattern": "^F[0-9]{3}$" },
+          "path": { "type": "string" },
+          "reason": { "type": "string" },
+          "file_count": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "source_rel_path",
+          "source_sha256",
+          "content_summary",
+          "document_role",
+          "proposed_name",
+          "target_folder",
+          "final_rel_path",
+          "action",
+          "confidence",
+          "related_ids",
+          "evidence"
+        ],
+        "properties": {
+          "id": { "type": "string" },
+          "source_rel_path": { "type": "string" },
+          "source_sha256": { "type": ["string", "null"] },
+          "content_summary": { "type": "string", "minLength": 1 },
+          "document_role": {
+            "type": "string",
+            "enum": ["core", "working", "reference", "outdated", "duplicate", "uncertain"]
+          },
+          "proposed_name": { "type": "string", "minLength": 1 },
+          "target_folder": { "type": "string", "minLength": 1 },
+          "final_rel_path": { "type": "string", "minLength": 1 },
+          "action": {
+            "type": "string",
+            "enum": ["keep", "rename", "move", "archive", "review"]
+          },
+          "confidence": { "type": "integer", "minimum": 1, "maximum": 10 },
+          "related_ids": { "type": "array", "items": { "type": "string" } },
+          "evidence": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "warnings": { "type": "array", "items": { "type": "string" } }
+  }
+}
