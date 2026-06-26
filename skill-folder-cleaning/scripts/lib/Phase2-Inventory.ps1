@@ -1,127 +1,244 @@
-# Phase2-Inventory.ps1 — enumerate every file, hash, flag dupes/temp/empty.
-# Deterministic. No AI. No source writes.
+# Phase2-Inventory.ps1 — enumerate every file, hash exact duplicates, and record
+# enough metadata for context intake and global organization analysis.
 
-function Resolve-Shortcut {
-    param([string]$LnkPath)
+function Get-ImageMetadata {
+    param([string]$Path)
+    $result = [ordered]@{ width = $null; height = $null; format = $null }
     try {
-        $sh = New-Object -ComObject WScript.Shell
-        $target = $sh.CreateShortcut($LnkPath).TargetPath
-        [System.Runtime.InteropServices.Marshal]::ReleaseComObject($sh) | Out-Null
-        if ([string]::IsNullOrWhiteSpace($target)) { return @{ target = $null; broken = $true } }
-        return @{ target = $target; broken = -not (Test-Path -LiteralPath $target) }
-    } catch {
-        return @{ target = $null; broken = $true }
-    }
+        Add-Type -AssemblyName System.Drawing.Common -ErrorAction SilentlyContinue
+        $image = [System.Drawing.Image]::FromFile((Get-LongPath $Path))
+        try {
+            $result.width = $image.Width
+            $result.height = $image.Height
+            $result.format = "$($image.RawFormat)"
+        } finally {
+            $image.Dispose()
+        }
+    } catch { }
+    return [pscustomobject]$result
 }
 
 function Invoke-Phase2Inventory {
     param(
         [Parameter(Mandatory)][string]$Source,
         [Parameter(Mandatory)][string]$OutputPath,
-        [Parameter(Mandatory)] $Config
+        [Parameter(Mandatory)]$Config,
+        [bool]$HydrateCloud
     )
 
-    Write-Phase "inventory" "Scanning files (this can take a moment on large folders)"
+    Write-Phase "inventory" "Scanning folders and files"
+
+    $scanErrors = @()
+    $items = @(Get-ChildItem -LiteralPath $Source -Recurse -Force -ErrorAction SilentlyContinue -ErrorVariable +scanErr)
+    foreach ($errorRecord in @($scanErr)) {
+        $target = if ($errorRecord.TargetObject) { "$($errorRecord.TargetObject)" } else { "" }
+        $scanErrors += [pscustomobject]@{ path = $target; error = "$($errorRecord.Exception.Message)" }
+    }
+
+    # The reserved artifacts folder (default _DATA_CLEANING) lives inside the analyzed
+    # root, so exclude it and everything under it: the run must never inventory, plan,
+    # or move its own state, extracted text, plans, or transaction journals.
+    $artifactsName = "$($Config.organization.artifacts_dir)"
+    if (-not [string]::IsNullOrWhiteSpace($artifactsName)) {
+        $artifactsExact = (Join-Path $Source $artifactsName).TrimEnd("\")
+        $artifactsPrefix = $artifactsExact + "\"
+        $items = @($items | Where-Object {
+            $fullName = "$($_.FullName)"
+            -not ($fullName.Equals($artifactsExact, [System.StringComparison]::OrdinalIgnoreCase) -or
+                  $fullName.StartsWith($artifactsPrefix, [System.StringComparison]::OrdinalIgnoreCase))
+        })
+    }
+
+    $folders = @($items |
+        Where-Object { $_.PSIsContainer } |
+        ForEach-Object { $_.FullName.Substring($Source.Length).TrimStart("\") } |
+        Where-Object { $_ } |
+        Sort-Object { $_.ToLowerInvariant() })
+
+    $ordered = @($items |
+        Where-Object { -not $_.PSIsContainer } |
+        Sort-Object { $_.FullName.Substring($Source.Length).TrimStart("\").ToLowerInvariant() })
 
     $files = @()
-    $idx = 0
-    $all = Get-ChildItem -LiteralPath $Source -Recurse -File -Force -ErrorAction SilentlyContinue
+    $index = 0
+    foreach ($file in $ordered) {
+        $index++
+        $id = "f{0:D5}" -f $index
 
-    foreach ($f in $all) {
-        $idx++
-        $id = "f{0:D5}" -f $idx
-        $rel = $f.FullName.Substring($Source.Length).TrimStart('\')
-        $ext = $f.Extension.ToLowerInvariant()
-        $type = Get-FileType -Ext $ext -Config $Config
+        # Opt-in: download OneDrive (Files On-Demand) placeholders so they can be hashed
+        # and analyzed like local files instead of being routed to review as cloud-only.
+        if ($HydrateCloud -and (Get-CloudMaskHit -Item $file) -ne 0) {
+            if (Request-FileHydration -Path $file.FullName) {
+                try { $file = Get-Item -LiteralPath $file.FullName -Force -ErrorAction Stop } catch { }
+            }
+        }
+
+        $relativePath = $file.FullName.Substring($Source.Length).TrimStart("\")
+        $extension = $file.Extension.ToLowerInvariant()
+        $type = Get-FileType -Ext $extension -Config $Config
+        $isTemp = ($type -eq "temp" -or $file.Name.StartsWith("~$"))
+        $isEmpty = ($file.Length -eq 0)
+        $kind = switch ($type) {
+            "image" { "image" }
+            "binary_skip" { "binary" }
+            default { "document" }
+        }
 
         $entry = [ordered]@{
-            id                 = $id
-            rel_path           = $rel
-            ext                = $ext
-            type               = $type
-            size_bytes         = $f.Length
-            modified           = $f.LastWriteTimeUtc.ToString("o")
-            created            = $f.CreationTimeUtc.ToString("o")
-            sha256             = $null
-            availability       = "local"
-            is_empty           = ($f.Length -eq 0)
-            is_temp            = ($type -eq "temp" -or $f.Name.StartsWith("~$"))
-            shortcut_target    = $null
-            dup_group          = $null
-            # Empty and temp files are decided deterministically — don't extract or send to AI.
-            analyze            = ((Test-Analyzable -Type $type) -and ($f.Length -gt 0) -and ($type -ne "temp") -and -not $f.Name.StartsWith("~$"))
-            extracted_file     = $null
-            extraction_status  = "pending"
-            extraction_reason  = $null
-            classification     = $null
-            notes              = @()
+            id = $id
+            rel_path = $relativePath
+            ext = $extension
+            type = $type
+            kind = $kind
+            size_bytes = $file.Length
+            modified = $file.LastWriteTimeUtc.ToString("o")
+            created = $file.CreationTimeUtc.ToString("o")
+            sha256 = $null
+            availability = "local"
+            attr_mask = ("0x{0:X}" -f [int]$file.Attributes)
+            is_empty = $isEmpty
+            is_temp = $isTemp
+            shortcut_target = $null
+            image_metadata = $null
+            needs_visual = ($type -eq "image")
+            extract_text = ((Test-TextExtractable -Type $type) -and -not $isEmpty -and -not $isTemp)
+            submit_to_host = (-not $isTemp -and -not $isEmpty)
+            exact_duplicate_group = $null
+            analysis_representative_id = $null
+            is_analysis_representative = $false
+            extracted_file = $null
+            extracted_sha256 = $null
+            extraction_status = "pending"
+            extraction_reason = $null
+            decoding_errors = $false
+            deterministic_disposition = $null
+            notes = @()
         }
 
-        # Windows shortcuts: resolve, don't follow for cleanup.
-        if ($ext -eq ".lnk") {
-            $r = Resolve-Shortcut -LnkPath $f.FullName
-            $entry.shortcut_target = $r.target
-            $entry.analyze = $false
-            if ($r.broken) { $entry.availability = "broken_shortcut"; $entry.notes += "shortcut target missing" }
-            else { $entry.notes += "shortcut -> $($r.target)" }
-            $files += [pscustomobject]$entry
-            continue
-        }
-
-        # OneDrive cloud-only: inventory but do not hash/extract (no local bytes).
-        if (Test-CloudOnly -Item $f) {
-            $entry.availability = "cloud_only"
-            $entry.analyze = $false
+        if ($extension -eq ".lnk") {
+            $entry.kind = "shortcut"
+            $resolved = Resolve-Shortcut -LnkPath $file.FullName
+            $entry.shortcut_target = $resolved.target
+            $entry.extract_text = $false
+            $entry.submit_to_host = $false
             $entry.extraction_status = "skipped"
-            $entry.extraction_reason = "cloud_only (OneDrive); user must make available locally"
-            $entry.notes += "cloud-only: not downloaded"
+            $entry.extraction_reason = "shortcut"
+            if ($resolved.broken) {
+                $entry.availability = "broken_shortcut"
+                $entry.notes += "shortcut target missing"
+            } else {
+                $entry.notes += "shortcut -> $($resolved.target)"
+            }
+        }
+
+        $cloudMask = Get-CloudMaskHit -Item $file
+        if ($cloudMask -ne 0) {
+            $entry.availability = "cloud_only"
+            $entry.extract_text = $false
+            $entry.submit_to_host = $false
+            $entry.extraction_status = "skipped"
+            $entry.extraction_reason = "cloud-only placeholder; make available locally"
+            $entry.notes += "cloud-only: not hashed or downloaded"
             $files += [pscustomobject]$entry
             continue
         }
 
-        # Hash local files (exact-duplicate detection, deterministic, free).
-        if ($f.Length -gt 0) {
-            try {
-                $entry.sha256 = (Get-FileHash -LiteralPath $f.FullName -Algorithm SHA256 -ErrorAction Stop).Hash
-            } catch {
-                $entry.availability = "unreadable"
-                $entry.analyze = $false
-                $entry.notes += "hash failed: $($_.Exception.Message)"
+        try {
+            $sizeBefore = $file.Length
+            $modifiedBefore = $file.LastWriteTimeUtc
+            $entry.sha256 = Get-FileSha256 -Path $file.FullName
+            $after = Get-Item -LiteralPath $file.FullName -Force -ErrorAction Stop
+            if ($after.Length -ne $sizeBefore -or $after.LastWriteTimeUtc -ne $modifiedBefore) {
+                $entry.availability = "unstable"
+                $entry.sha256 = $null
+                $entry.extract_text = $false
+                $entry.submit_to_host = $false
+                $entry.extraction_status = "skipped"
+                $entry.extraction_reason = "file changed during inventory"
+                $entry.notes += "file changed during inventory"
             }
+        } catch {
+            $entry.availability = "unreadable"
+            $entry.sha256 = $null
+            $entry.extract_text = $false
+            $entry.submit_to_host = $false
+            $entry.extraction_status = "skipped"
+            $entry.extraction_reason = "hash failed: $($_.Exception.Message)"
+            $entry.notes += $entry.extraction_reason
+        }
+
+        if ($type -eq "image" -and $entry.availability -eq "local") {
+            $entry.image_metadata = Get-ImageMetadata -Path $file.FullName
+        }
+        if (-not $entry.extract_text -and $entry.extraction_status -eq "pending") {
+            $entry.extraction_status = "skipped"
+            $entry.extraction_reason = "metadata-only host analysis"
         }
 
         $files += [pscustomobject]$entry
     }
 
-    # Exact-duplicate groups: same SHA-256 => same bytes. No AI needed.
-    $groups = @($files | Where-Object { $_.sha256 } | Group-Object sha256 | Where-Object { $_.Count -gt 1 })
-    $g = 0
-    foreach ($grp in $groups) {
-        $g++
-        $label = "d{0:D3}" -f $g
-        foreach ($m in $grp.Group) {
-            $m.dup_group = $label
-            # Keep the oldest copy as canonical; the rest are exact duplicates.
+    # Group only real content files. Temp/empty/shortcut files share trivial hashes
+    # (e.g. every empty file) but must keep their deterministic review disposition
+    # instead of being forced through host analysis as a "duplicate".
+    $duplicateGroups = @()
+    $hashGroups = @($files |
+        Where-Object { $_.sha256 -and $_.submit_to_host } |
+        Group-Object sha256 |
+        Where-Object { $_.Count -gt 1 } |
+        Sort-Object Name)
+    $groupIndex = 0
+    foreach ($group in $hashGroups) {
+        $groupIndex++
+        $groupId = "d{0:D3}" -f $groupIndex
+        $members = @($group.Group | Sort-Object { $_.rel_path.ToLowerInvariant() })
+        $representative = $members[0]
+        foreach ($member in $members) {
+            $member.exact_duplicate_group = $groupId
+            $member.analysis_representative_id = $representative.id
+            $member.is_analysis_representative = ($member.id -eq $representative.id)
+            if ($member.id -ne $representative.id) {
+                $member.extract_text = $false
+                $member.submit_to_host = $false
+                $member.extraction_status = "skipped"
+                $member.extraction_reason = "exact duplicate; representative content submitted once"
+            }
         }
-        $sorted = $grp.Group | Sort-Object modified
-        for ($i = 1; $i -lt $sorted.Count; $i++) {
-            $sorted[$i].analyze = $false
-            $sorted[$i].notes += "exact duplicate of $($sorted[0].rel_path)"
+        $representative.submit_to_host = $true
+        $duplicateGroups += [pscustomobject]@{
+            group_id = $groupId
+            sha256 = $group.Name
+            analysis_representative_id = $representative.id
+            occurrence_paths = @($members | ForEach-Object { $_.rel_path })
         }
     }
 
+    foreach ($entry in $files) {
+        [void](Set-DeterministicDisposition -Entry $entry)
+    }
+
+    $formatCensus = @($files |
+        Group-Object type |
+        Sort-Object Name |
+        ForEach-Object { [pscustomobject]@{ type = $_.Name; count = $_.Count } })
+
     $manifest = [ordered]@{
-        schema       = 1
-        generated    = (Get-Date).ToString("o")
-        source       = $Source
-        file_count   = $files.Count
-        dup_groups   = $groups.Count
-        files        = $files
+        schema = 3
+        generated = (Get-Date).ToString("o")
+        source = $Source
+        complete = ($scanErrors.Count -eq 0)
+        scan_errors = $scanErrors
+        file_count = $files.Count
+        folders = $folders
+        format_census = $formatCensus
+        duplicate_groups = $duplicateGroups
+        files = $files
     }
     Save-Json -Object $manifest -Path (Join-Path $OutputPath "manifest.json")
 
-    $cloud = @($files | Where-Object { $_.availability -eq "cloud_only" }).Count
-    $broken = @($files | Where-Object { $_.availability -eq "broken_shortcut" }).Count
-    Write-Phase "inventory" "$($files.Count) files | $($groups.Count) exact-dup groups | $cloud cloud-only | $broken broken shortcuts" "ok"
-    return $manifest
+    $cloudCount = @($files | Where-Object { $_.availability -eq "cloud_only" }).Count
+    $imageCount = @($files | Where-Object { $_.kind -eq "image" }).Count
+    $level = if ($manifest.complete) { "ok" } else { "warn" }
+    Write-Phase "inventory" "$($files.Count) files | $($folders.Count) folders | $($duplicateGroups.Count) exact-duplicate groups | $imageCount images | $cloudCount cloud-only | $($scanErrors.Count) scan errors" $level
+    return [pscustomobject]$manifest
 }

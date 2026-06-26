@@ -1,0 +1,44 @@
+# Folder Cleaning — User Guide
+
+PURPOSE
+Turn a messy folder into a clean, sensible structure. An AI reads your files,
+proposes where each one should go, you approve, and the tool moves them.
+Safe by design: your files are never changed or moved until you approve, nothing
+is ever deleted (anything replaced is archived), and every run can be undone.
+
+HOW IT WORKS (big picture)
+1. SCAN     — the tool lists the folder and reads a short preview of each file.
+              It does not move or edit anything at this stage.
+2. PROPOSE  — the AI suggests a new folder structure and a home for every file.
+3. REVIEW   — you read the proposal and approve it (or ask for changes).
+4. APPLY    — the tool moves the files into the new structure.
+5. UNDO     — not happy? one command puts everything back exactly as it was.
+
+All working files (the proposal, logs, the undo script) are written inside a
+"_DATA_CLEANING" subfolder of the folder being cleaned, so they stay out of your way.
+
+WHO DOES WHAT
+The AI assistant runs the commands and writes the analysis. You only make the
+decisions: confirm what must not move, then review and approve the proposal.
+
+THE STEPS
+Commands run from the "scripts" folder; replace <folder> with your folder.
+Each command prints what to do next.
+
+1. Start        pwsh run-folder-cleaning.ps1 -SourcePath "<folder>"
+                Scans, then pauses to ask which files/folders must be protected.
+2. Continue     ...-Resume   (after the AI notes the context and protected items)
+                Pauses again while the AI reads the file previews.
+3. Get proposal ...-Resume   (after the AI writes its analysis)
+                Creates "approval-view.md" — the proposed structure to review.
+4. Adjust       Ask in plain words ("rename that folder", "move this file") and re-run.
+5. Approve      ...-Resume -Approve
+6. Apply        ...-Mode apply        Moves the files into the new structure.
+7. Undo         run "rollback.ps1"    Restores every file to where it was.
+
+GOOD TO KNOW
+- OneDrive "online-only" files: add -HydrateCloud so they are downloaded and
+  analyzed instead of skipped.
+- PDFs: reading their text needs poppler's "pdftotext" installed (already set up
+  on this machine).
+- Dry run: add -SkipAI to confirm the tool runs end to end without the AI.
