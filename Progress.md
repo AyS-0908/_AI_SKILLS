@@ -1,6 +1,6 @@
 # Progress.md - AI Skills
 
-Last updated: 2026-07-05
+Last updated: 2026-06-25
 
 ## Current Objective
 
@@ -8,7 +8,6 @@ Publish `skill-audit-it` and remove obsolete Audit-IT WIP source files.
 
 ## Done
 
-- Created local `skill-ai-agent-harness/SKILL.md` to build portable AI-agent harnesses from one real use case, with research, standard docs, customization questions, and validation steps.
 - Confirmed active published skills are consumed from `AyS-0908/SKILLS`.
 - Confirmed `code-AI_SKILLS` is the local skills workbench.
 - Confirmed `code-SKILLS_COCKPIT` is the old Google Drive -> Apps Script -> GitHub cockpit.
@@ -35,7 +34,6 @@ Publish `skill-audit-it` and remove obsolete Audit-IT WIP source files.
 - Published `skill-audit-it/` as the active Audit-IT skill. It audits startup-sized projects, includes
   Tier 1/2/3 findings, and writes `_Audit-IT/audit_it__NNN_title.md` handoff files for AI coders.
 - Removed obsolete Audit-IT draft material from `x_.WIP/_audit-it/` and `x_.WIP/_audit-general.zip`.
-- Tightened `skill-audit-it/SKILL.md` output rules so audit handoffs stay compact and AI-coder-native.
 
 ## In Progress
 
@@ -54,12 +52,13 @@ Publish `skill-audit-it` and remove obsolete Audit-IT WIP source files.
 
 ## Next Action
 
-Publish local skill changes and refresh the generated skills manifest if immediate discovery by other agents is needed.
+Refresh the generated skills manifest after the GitHub push if immediate local discovery is needed.
 
 ## Last Verification
 
-- Date: 2026-07-05
-- Method: `Validate-Skill.ps1` on `skill-audit-it`
+- Date: 2026-06-25
+- Method: Audit-IT helper scripts parsed with Python; SKILL.md trigger/output checks passed;
+  `write_audit_doc.py` created a numbered `_Audit-IT` handoff file in a temp project.
 - Result: pass
 
 ## Known Risks
