@@ -2,8 +2,8 @@
 name: audit-it
 description: >
   Audit startup-sized technical projects by orchestrating PRD/spec review, repo
-  inventory, native checks, installed plugins/MCPs, AI judgment, and a concrete
-  handoff file for the next AI coder. Trigger for: explicit codebase/PRD audit
+  inventory, native checks, installed plugins/MCPs, AI judgment, and a compact
+  AI-coder handoff file. Trigger for: explicit codebase/PRD audit
   requests, "deep audit", "review this implementation plan", "check delivery
   before final", phase-gate review after an implementation milestone, or final
   delivery readiness checks for SaaS, Apps Script, n8n, and small web apps. Do
@@ -61,11 +61,11 @@ Always write the audit handoff into the audited project root:
 Use `scripts/write_audit_doc.py <project_root> "<title>" <draft_markdown_file>` to create the file with the next number.
 
 The markdown file is the source of truth for the other AI. It must contain:
-- short user verdict
+- status/readiness
+- compact fix queue
 - native checks run
-- Tier 1 / Tier 2 / Tier 3 findings
 - exact AI-coder task list
-- JSON block for all actionable Tier 1 / Tier 2 / Tier 3 items
+- JSON block for actionable items only
 
 In the chat response to the user, output only a short prompt that points the next AI coder to this file.
 
@@ -163,14 +163,14 @@ Severity:
 
 Every Tier 1 finding needs:
 - evidence
-- impact
-- owner lane
+- impact only if not obvious
 - exact fix intent
 - confidence
 
-Every Tier 2 and Tier 3 finding needs the same fields when it is actionable.
+Every Tier 2 and Tier 3 finding needs the same fields only when actionable now.
 Do not suppress Tier 2/3 because "the AI judged it secondary." The user wants a clean, robust codebase.
 If a Tier 2/3 item is intentionally deferred, label it `DEFERRED_WITH_REASON`.
+Do not put deferred items in the JSON handoff unless the AI coder must act on them in this pass.
 
 ## Report Format
 
@@ -182,28 +182,14 @@ Write the `_Audit-IT/audit_it__NNN_title.md` file:
 ## Status
 BLOCKING_STATUS: BLOCKING | NON_BLOCKING | CLEAN
 READINESS: NOT_READY | READY_WITH_FIXES | READY
+REASON: one sentence
 
-## For You
-- Plain-language verdict.
-- Main blockers.
-- What the AI coder should do next.
-
-## Tier 1 - Blocking
-- ID, severity, evidence, impact, recommended fix.
-
-## Tier 2 - Should Fix
-- ID, severity, evidence, impact, recommended fix.
-
-## Tier 3 - Cleanup / Optimization
-- ID, severity, evidence, impact, recommended fix.
+## Fix Queue
+- A-001 | Tier 1 | HIGH | target: `path:line` | issue: one sentence | fix: one sentence | test: one sentence
+- A-002 | Tier 2 | MEDIUM | target: `path:line` | issue: one sentence | fix: one sentence | test: one sentence
 
 ## Native Checks Run
-- Command/tool, result, important excerpt.
-
-## Reuse / Delegation
-- Native assets used.
-- Native assets available but not installed.
-- Custom logic used.
+- `command`: PASS/FAIL/SKIPPED - smallest useful excerpt
 
 ## AI Coder Tasks
 - Minimal implementation tasks, ordered by priority.
@@ -214,7 +200,17 @@ READINESS: NOT_READY | READY_WITH_FIXES | READY
 ```
 ````
 
-The JSON handoff must include all actionable Tier 1, Tier 2, and Tier 3 items:
+Hard output rules:
+- Target <= 120 lines. If it is longer, delete non-actionable context before writing.
+- Max 7 Fix Queue items. If there are more, keep the delivery blockers and move the rest to a follow-up/backlog note.
+- Max 2 evidence refs per item. Use the best file:line refs, not every supporting observation.
+- Do not include PRD alignment tables, architecture assessments, robustness essays, coverage inventories, or live-smoke lists unless they create a fix task.
+- Do not write both a verbose finding and a JSON finding for the same issue. The Fix Queue is the human-readable summary; JSON is the machine-readable copy.
+- Do not include headings like `Concrete failure scenario`, `Minimal fix`, or `Smallest useful test`. Use `issue`, `fix`, and `test`.
+- Native checks are command/result only, max 8 lines. No interpretation paragraphs unless a failed check changes a task.
+- Tier 3 cleanup goes in the handoff only when it should be done in this pass. Otherwise omit it.
+
+The JSON handoff must include all actionable Tier 1, Tier 2, and Tier 3 items for this pass:
 
 ```json
 [
@@ -226,6 +222,7 @@ The JSON handoff must include all actionable Tier 1, Tier 2, and Tier 3 items:
     "operation": "ADD|REMOVE|REPLACE|INVESTIGATE",
     "fix_intent": "smallest useful correction",
     "evidence": "file:line or quoted source",
+    "test": "smallest check that proves the fix",
     "status": "READY_FOR_AI_CODER"
   }
 ]
