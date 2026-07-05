@@ -2,8 +2,9 @@
 name: audit-it
 description: >
   Audit startup-sized technical projects by orchestrating PRD/spec review, repo
-  inventory, native checks, installed plugins/MCPs, AI judgment, and a compact
-  AI-coder handoff file. Trigger for: explicit codebase/PRD audit
+  inventory, native checks, installed plugins/MCPs, and AI judgment, then emit a
+  single verdict: Greenlight or a Fix Plan written into the project's
+  implementation plan. Trigger for: explicit codebase/PRD audit
   requests, "deep audit", "review this implementation plan", "check delivery
   before final", phase-gate review after an implementation milestone, or final
   delivery readiness checks for SaaS, Apps Script, n8n, and small web apps. Do
@@ -53,21 +54,17 @@ Default:
 
 ## Outputs
 
-Always write the audit handoff into the audited project root:
+The audit emits exactly one verdict — **Greenlight** or a **Fix Plan** — plus a short chat message. There is no separate report file.
 
-- folder: `_Audit-IT`
-- file: `audit_it__NNN_phase_or_feature_title.md`
+**Greenlight** (no Tier 1 or Tier 2 findings): write nothing to disk. Tell the user in chat: verdict + one-sentence reason + the native checks that passed. Do not create an empty fixes section.
 
-Use `scripts/write_audit_doc.py <project_root> "<title>" <draft_markdown_file>` to create the file with the next number.
+**Fix Plan** (any Tier 1/2 finding, or actionable Tier 3): write into the project's implementation plan, then point the coder at it.
 
-The markdown file is the source of truth for the other AI. It must contain:
-- status/readiness
-- compact fix queue
-- native checks run
-- exact AI-coder task list
-- JSON block for actionable items only
-
-In the chat response to the user, output only a short prompt that points the next AI coder to this file.
+1. Find the implementation plan: the existing `*plan*.md` in the project root (or nearest docs folder). If none exists, create `implementation_plan.md` in the project root.
+2. Append (do not overwrite prior content) a section:
+   - `## Audit fixes to implement — <YYYY-MM-DD>`
+   - one `### [ref] <one-line title>` sub-section per fix, in the format under "Fix Plan Format" below.
+3. In chat, point the coder at the plan (see "Final chat response").
 
 ## Workflow
 
@@ -145,8 +142,6 @@ Use exact file paths, function names, workflow names, or config keys when possib
 
 ### 6. Compile Findings
 
-Use `scripts/compile_audit_inputs.py <audit_dir>` to merge deterministic artifacts when present.
-
 Classify findings:
 
 | Tier | Meaning |
@@ -170,70 +165,43 @@ Every Tier 1 finding needs:
 Every Tier 2 and Tier 3 finding needs the same fields only when actionable now.
 Do not suppress Tier 2/3 because "the AI judged it secondary." The user wants a clean, robust codebase.
 If a Tier 2/3 item is intentionally deferred, label it `DEFERRED_WITH_REASON`.
-Do not put deferred items in the JSON handoff unless the AI coder must act on them in this pass.
+Do not write deferred items into the plan unless the AI coder must act on them in this pass.
 
-## Report Format
+## Fix Plan Format
 
-Write the `_Audit-IT/audit_it__NNN_title.md` file:
+On a Fix Plan verdict, append this to the implementation plan. Lead with a status line, then one sub-section per fix:
 
 ````markdown
-# Audit-IT
-
-## Status
-BLOCKING_STATUS: BLOCKING | NON_BLOCKING | CLEAN
-READINESS: NOT_READY | READY_WITH_FIXES | READY
+## Audit fixes to implement — <YYYY-MM-DD>
+BLOCKING_STATUS: BLOCKING | NON_BLOCKING
+READINESS: NOT_READY | READY_WITH_FIXES
 REASON: one sentence
+NATIVE CHECKS: `command` PASS/FAIL/SKIPPED — smallest useful excerpt (one line each)
 
-## Fix Queue
-- A-001 | Tier 1 | HIGH | target: `path:line` | issue: one sentence | fix: one sentence | test: one sentence
-- A-002 | Tier 2 | MEDIUM | target: `path:line` | issue: one sentence | fix: one sentence | test: one sentence
+### A-001 | Tier 1 | HIGH | `path:line`
+- issue: one sentence
+- fix: one sentence
+- test: smallest check that proves the fix
 
-## Native Checks Run
-- `command`: PASS/FAIL/SKIPPED - smallest useful excerpt
-
-## AI Coder Tasks
-- Minimal implementation tasks, ordered by priority.
-
-## JSON Handoff
-```json
-[]
-```
+### A-002 | Tier 2 | MEDIUM | `path:line`
+- issue: one sentence
+- fix: one sentence
+- test: smallest check that proves the fix
 ````
 
 Hard output rules:
-- Target <= 120 lines. If it is longer, delete non-actionable context before writing.
-- Max 7 Fix Queue items. If there are more, keep the delivery blockers and move the rest to a follow-up/backlog note.
-- Max 2 evidence refs per item. Use the best file:line refs, not every supporting observation.
-- Do not include PRD alignment tables, architecture assessments, robustness essays, coverage inventories, or live-smoke lists unless they create a fix task.
-- Do not write both a verbose finding and a JSON finding for the same issue. The Fix Queue is the human-readable summary; JSON is the machine-readable copy.
+- Max 7 fix sub-sections. If there are more, keep the delivery blockers and add a one-line backlog note for the rest.
+- Max 2 evidence refs per fix. Use the best `file:line` refs, not every supporting observation.
+- Do not append PRD alignment tables, architecture assessments, robustness essays, coverage inventories, or live-smoke lists unless they create a fix.
 - Do not include headings like `Concrete failure scenario`, `Minimal fix`, or `Smallest useful test`. Use `issue`, `fix`, and `test`.
-- Native checks are command/result only, max 8 lines. No interpretation paragraphs unless a failed check changes a task.
-- Tier 3 cleanup goes in the handoff only when it should be done in this pass. Otherwise omit it.
+- Native checks are command/result only. No interpretation paragraphs unless a failed check changes a fix.
+- Tier 3 cleanup goes in the plan only when it should be done in this pass. Otherwise omit it.
+- Do not overwrite the plan's existing content — append a new dated section each audit run.
 
-The JSON handoff must include all actionable Tier 1, Tier 2, and Tier 3 items for this pass:
+Final chat response:
 
-```json
-[
-  {
-    "ref": "A-001",
-    "tier": "Tier 1",
-    "severity": "HIGH",
-    "target": "path/or/spec/location",
-    "operation": "ADD|REMOVE|REPLACE|INVESTIGATE",
-    "fix_intent": "smallest useful correction",
-    "evidence": "file:line or quoted source",
-    "test": "smallest check that proves the fix",
-    "status": "READY_FOR_AI_CODER"
-  }
-]
-```
-
-Final chat response format:
-
-```text
-Give this to the AI coder:
-Use the Audit-IT handoff file at <absolute_path_to_md>. Implement the AI Coder Tasks only. Keep the diff minimal and run the checks listed in the file.
-```
+- **Greenlight:** `Greenlight — <one-sentence reason>. Native checks: <list>. Nothing to fix.`
+- **Fix Plan:** `Fix Plan written to <plan path> (N fixes, M blocking). Give the AI coder this: implement the "Audit fixes to implement — <date>" section only, keep the diff minimal, and run the tests listed per fix.`
 
 ## Stop Rules
 
