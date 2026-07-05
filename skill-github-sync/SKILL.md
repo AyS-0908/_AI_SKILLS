@@ -58,12 +58,17 @@ triggers:
    ```powershell
    python "<skill>/scripts/git_sync.py" commit-push "<repo>" --message "<msg>" --files "<file1>" "<file2>"
    ```
-6. IF creating or renaming a GitHub repo:
+6. IF the push published a skill (repo is the skills workbench `_AI_SKILLS` and the commit touched any `skill-*/SKILL.md`), propagate it to every agent in the same turn — do not leave it for the 3-hour timer:
+   ```powershell
+   pwsh -NoProfile -File "C:\Users\aymar\AYS_CODING\_AI_AGENTS\scripts\Sync-SkillsManifest.ps1" -Force
+   ```
+   This rebuilds `skills-manifest.json` from GitHub and installs the updated skills into `.claude\skills` and `.codex\skills`. Requires `gh` auth. Skip entirely for non-skill repos.
+7. IF creating or renaming a GitHub repo:
    ```powershell
    python "<skill>/scripts/git_sync.py" create-repo "<repo>" --name "<repo-name>" --owner "<owner>" --private
    python "<skill>/scripts/git_sync.py" rename-repo "<repo>" --owner "<owner>" --name "<old-name>" --new-name "<new-name>"
    ```
-7. Report branch, commit, pushed state, GitHub URL, and remaining `review_items`.
+8. Report branch, commit, pushed state, GitHub URL, and remaining `review_items`. If step 6 ran, say which agents were refreshed.
 
 ## Stop Rules
 
