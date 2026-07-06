@@ -4,7 +4,7 @@ Last updated: 2026-07-06
 
 ## Current Objective
 
-Publish `skill-audit-it` and remove obsolete Audit-IT WIP source files.
+Publish `skill-ideasup-flow` (startup-definition pipeline) from the `.WIP/skill-ideaup-flow` workspace.
 
 ## Done
 
@@ -34,8 +34,27 @@ Publish `skill-audit-it` and remove obsolete Audit-IT WIP source files.
 - Published `skill-audit-it/` as the active Audit-IT skill. It audits startup-sized projects, includes
   Tier 1/2/3 findings, and writes `_Audit-IT/audit_it__NNN_title.md` handoff files for AI coders.
 - Removed obsolete Audit-IT draft material from `x_.WIP/_audit-it/` and `x_.WIP/_audit-general.zip`.
+- Published `skill-ideasup-flow/` (2026-07-06): RIGID startup-definition pipeline (Pain -> Opportunity ->
+  Idea -> User Story -> Mockup -> Specification; stages 4 Business Plan and 8 AI-Coder rules remain
+  MISSING SOURCE). Added file-based artifact handoff (`<project>/ideasup/N-stage.md`), resume/flow mode,
+  and deterministic `scripts/status.py` (tested: empty dir + partial pipeline both correct).
+- Audited `.WIP/skill-ideaup-flow`: distilled references verified faithful to original prompts;
+  duplicates confirmed and the whole WIP folder deleted with user approval (2026-07-06). The source spec
+  was preserved as `skill-ideasup-flow/references/pipeline-source-spec.md` (holds stage 4/8 contract rows).
+  Only an empty husk + `.claude/` remains (held busy as the live session cwd) — delete manually later.
+- Added deterministic checks to `skill-ideasup-flow/scripts/`: `check_mockup.py` (single style/script,
+  no external deps, Brief fields, DEMO ONLY balance, no persistence APIs) and `check_spec.py` (required
+  spec sections, Do Not Build count). Both tested on pass/fail fixtures; wired into SKILL.md.
 - Fixed `skill-github-sync` commit-push: pre-staged paths outside `--files` now fail fast
   (`staged_outside_files`) instead of being silently swept into the commit; test added.
+- Audited + reworked `.WIP/skill-benchmark` (2026-07-06): pipeline is now deterministic — model
+  collects web data into `benchmark.json`, `scripts/benchmark.py validate` machine-checks
+  completeness (every entity × criterion cell), source URLs + accessed dates, units, gap rate;
+  `render` produces the matrix + auto-computed Data Quality section; model writes only
+  findings/recommendations/limits. E2E tested new vs old skill on a Todoist/TickTick pricing
+  benchmark: new 6/6 assertions, old 3/6 (no data artifact, no accessed dates, no cell-level
+  source refs). Old version snapshotted in `.WIP/skill-benchmark-workspace/skill-snapshot/`;
+  eval results + review.html in `.WIP/skill-benchmark-workspace/iteration-1/`.
 
 ## In Progress
 
@@ -58,9 +77,11 @@ Refresh the generated skills manifest after the GitHub push if immediate local d
 
 ## Last Verification
 
-- Date: 2026-06-25
-- Method: Audit-IT helper scripts parsed with Python; SKILL.md trigger/output checks passed;
-  `write_audit_doc.py` created a numbered `_Audit-IT` handoff file in a temp project.
+- Date: 2026-07-06
+- Method: `skill-ideasup-flow/scripts/status.py` tested on empty and partial pipelines (correct NEXT
+  detection, MISSING SOURCE skip). Subagent smoke test of the published skill: correct reference selected
+  (stage-3-idea.md only), stopped at first validation point, artifact I/O unambiguous. One found defect
+  (ownership table out of sync with Idea reference) fixed; language-default and persist-timing clarified.
 - Result: pass
 
 ## Known Risks

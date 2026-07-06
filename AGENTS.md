@@ -4,11 +4,11 @@
 
 Local workbench for creating, editing, and reviewing AI agent skills before publishing them for agents to consume.
 
-## Read Order
+## Docs map (per read Order)
 
-1. `Progress.md` for current state and next action.
-2. `Architecture.md` only when system understanding is needed.
-3. `README.md` for the short human-facing summary.
+1. `Progress.md`: for current state and next action.
+2. `Architecture.md`: when system understanding is needed.
+3. `README.md`: for the short human-facing summary.
 
 ## Current Objective
 
@@ -22,11 +22,6 @@ Source: `Progress.md`
 - Test: Not defined
 - Verify: inspect changed `skill-*/SKILL.md` files and compare against `C:\Users\aymar\.ai-agents\Skills_usage.md`
 
-## Docs Map
-
-- Current state: `Progress.md`
-- System structure: `Architecture.md`
-- Human summary: `README.md`
 
 ## Constraints
 
