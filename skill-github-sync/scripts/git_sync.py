@@ -236,6 +236,14 @@ def commit_push(args):
     else:
         if not args.files:
             raise SystemExit(json.dumps({"ok": False, "stage": "stage", "reason": "missing_files_or_all"}))
+        # git commit -- <paths> would commit worktree state (breaking --cached removals),
+        # so instead refuse to sweep pre-staged paths outside --files into the commit
+        pre = run(root, "diff", "--cached", "--name-only")
+        if pre:
+            allowed = set(run(root, "diff", "--cached", "--name-only", "--", *args.files).splitlines())
+            outside = [p for p in pre.splitlines() if p not in allowed]
+            if outside:
+                raise SystemExit(json.dumps({"ok": False, "stage": "precommit", "reason": "staged_outside_files", "paths": outside[:40]}))
         stage_paths(root, args.files)
     staged = run(root, "diff", "--cached", "--name-only")
     if not staged:

@@ -1,6 +1,6 @@
 # Progress.md - AI Skills
 
-Last updated: 2026-06-25
+Last updated: 2026-07-06
 
 ## Current Objective
 
@@ -34,6 +34,8 @@ Publish `skill-audit-it` and remove obsolete Audit-IT WIP source files.
 - Published `skill-audit-it/` as the active Audit-IT skill. It audits startup-sized projects, includes
   Tier 1/2/3 findings, and writes `_Audit-IT/audit_it__NNN_title.md` handoff files for AI coders.
 - Removed obsolete Audit-IT draft material from `x_.WIP/_audit-it/` and `x_.WIP/_audit-general.zip`.
+- Fixed `skill-github-sync` commit-push: pre-staged paths outside `--files` now fail fast
+  (`staged_outside_files`) instead of being silently swept into the commit; test added.
 
 ## In Progress
 

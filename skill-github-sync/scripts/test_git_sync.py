@@ -39,6 +39,18 @@ def main():
             text=True,
         )
         assert json.loads(pushed.stdout)["pushed"] is True
+        (repo / "AGENTS.md").write_text("unrelated\n", encoding="utf-8")
+        git(repo, "add", "AGENTS.md")
+        (repo / "README.md").write_text("# Test\nchange\nmore\n", encoding="utf-8")
+        blocked = subprocess.run(
+            [sys.executable, SCRIPT, "commit-push", repo, "--message", "must not sweep", "--files", "README.md"],
+            capture_output=True,
+            text=True,
+        )
+        assert blocked.returncode != 0
+        err = json.loads(blocked.stderr.strip())
+        assert err["reason"] == "staged_outside_files"
+        assert "AGENTS.md" in err["paths"]
     print("ok")
 
 
