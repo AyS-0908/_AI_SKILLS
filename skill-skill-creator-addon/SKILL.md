@@ -15,6 +15,10 @@ status: active
 
 # Skill Creator Addon — Quality Gates
 
+## Gotchas
+
+No known gotchas.
+
 This skill is a wrapper. It does NOT replace an AI-Agent's `skill-creator`. It runs alongside it: gates fire at four marked moments inside the standard workflow.
 
 | Point | When (inside skill-creator) | Gate |

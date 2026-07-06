@@ -3,38 +3,25 @@ name: appscript
 description: >
   Google Apps Script Skill for SPEC, BUILD, AUDIT, and DEBUG of robust v1
   Apps Script systems: Sheets automations, bound scripts, triggers, web apps,
-  and Apps Script service integrations.
-triggers:
-  - "Google Apps Script"
-  - "Apps Script"
-  - "GAS"
-  - ".gs"
-  - "Google Sheets automation"
-  - "Sheets script"
-  - "bound script"
-  - "onEdit"
-  - "onOpen"
-  - "doGet"
-  - "doPost"
-  - "SpreadsheetApp"
-  - "PropertiesService"
-  - "LockService"
-  - "CacheService"
-  - "UrlFetchApp"
-  - "clasp"
-do_not_trigger_for:
-  - "spreadsheet formulas without scripting"
-  - "Google Sheets UI-only help"
-  - "generic JavaScript outside Apps Script"
-  - "Node.js projects outside Apps Script"
-  - "generic audits not tied to Apps Script"
-  - "PRDs for non-Apps-Script products"
-status: active
+  and Apps Script service integrations. Trigger for: Google Apps Script, GAS,
+  .gs files, Google Sheets automation, bound scripts, onEdit/onOpen triggers,
+  doGet/doPost web apps, SpreadsheetApp, PropertiesService, LockService,
+  CacheService, UrlFetchApp, clasp. Do NOT trigger for: spreadsheet formulas
+  without scripting, Google Sheets UI-only help, generic JavaScript or Node.js
+  outside Apps Script, generic audits not tied to Apps Script, or PRDs for
+  non-Apps-Script products.
 ---
 
 # GOOGLE_APPS_SCRIPT_SKILL
 
 This Skill assumes AGENTS.md already governs global coding behavior. Do not restate global coding rules here.
+
+## Gotchas
+
+- getLastRow/getLastColumn return last content position, not sheet capacity. Guard empty sheets before getRange.
+- Trigger executions can overlap. Use LockService and idempotent flows for shared writes.
+- UrlFetchApp can return HTTP 200 with a semantic error in the body. Check the body, not the status code.
+- Simple triggers have authorization restrictions. Use installable triggers for authorized services.
 
 ## ROLE
 
@@ -155,10 +142,6 @@ Quotas, jobs, and logs:
 
 Use reference files when available.
 
-references/spec-template.md:
-- Load for SPEC.
-- Purpose: full Apps Script implementation-ready specification schema.
-
 references/build-patterns.md:
 - Load for BUILD or code-pattern questions.
 - Purpose: copy-paste-safe v1 Apps Script patterns.
@@ -170,10 +153,6 @@ references/audit-checklist.md:
 references/debug-checklist.md:
 - Load for DEBUG.
 - Purpose: stepwise Apps Script failure isolation.
-
-references/gas-gotchas.md:
-- Load when behavior touches Sheets, triggers, web apps, quotas, auth, dates, deployments, or Apps Script runtime edge cases.
-- Purpose: high-signal gotchas and examples.
 
 If the relevant reference file is unavailable:
 - Continue with the inline fallback schema.

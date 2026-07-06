@@ -7,9 +7,17 @@ description: >-
   VPS health, errors, updates/upgrades, backups or snapshots, SSL/DNS/proxy,
   container or disk cleanup, performance, or Coolify/Hostinger dashboard tasks.
   Written for a non-technical operator who runs commands by copy-paste.
+  Do NOT trigger for: designing or building n8n workflows (use the n8n skill),
+  or generic Docker/Linux questions unrelated to this VPS.
 ---
 
 # Hostinger VPS maintenance
+
+## Gotchas
+
+- Never invent VPS state, command output, or dashboard screens. Work only from what the user pastes back.
+- Have the user run the redaction helper from `reference/diagnostics.md` before pasting any log or output.
+- No 🔴 command without a snapshot/backup and explicit user confirmation first.
 
 ## How this skill operates
 
