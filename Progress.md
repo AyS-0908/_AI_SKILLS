@@ -1,10 +1,10 @@
 # Progress.md - AI Skills
 
-Last updated: 2026-07-06
+Last updated: 2026-07-08
 
 ## Current Objective
 
-Publish `skill-ideasup-flow` (startup-definition pipeline) from the `.WIP/skill-ideaup-flow` workspace.
+Reworked + published `skill-benchmark` (deterministic competitive-benchmark pipeline). Next candidate: none pending.
 
 ## Done
 
@@ -55,6 +55,15 @@ Publish `skill-ideasup-flow` (startup-definition pipeline) from the `.WIP/skill-
   benchmark: new 6/6 assertions, old 3/6 (no data artifact, no accessed dates, no cell-level
   source refs). Old version snapshotted in `.WIP/skill-benchmark-workspace/skill-snapshot/`;
   eval results + review.html in `.WIP/skill-benchmark-workspace/iteration-1/`.
+- Published `skill-benchmark/` to repo root (2026-07-08): SKILL.md + scripts/benchmark.py +
+  references/output-templates.md (evals/ excluded, matching the other published skills).
+  Pushed to `AyS-0908/_AI_SKILLS` and propagated via Sync-SkillsManifest.ps1.
+  Description trigger-optimization (run_loop.py) ATTEMPTED but abandoned: the `claude -p`
+  triggering harness under-triggers skills (every should-trigger query scored 0-1/3, negatives
+  "passed" only because nothing ever fired), so the signal was non-informative. The description
+  was instead hand-verified against all 20 trigger queries (20/20 correct by inspection).
+  `.WIP/skill-benchmark/` source + `.WIP/skill-benchmark-workspace/` test evidence left on disk
+  (untracked) — safe to delete manually.
 
 ## In Progress
 
