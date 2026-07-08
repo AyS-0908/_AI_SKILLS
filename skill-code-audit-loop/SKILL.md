@@ -15,6 +15,8 @@ description: >
 
 # Code-Audit Loop
 
+**Uses:** audit-it (hard dep), doc-hygiene, github-sync
+
 Conductor skill. It does not audit and it does not invent a coder. It runs the
 back-and-forth between a Coder and the existing **audit-it** skill until a phase
 is green, with a hard round cap and a human final greenlight.
