@@ -45,7 +45,8 @@ _Done: added `## Models & effort` (rank-based table + invariant) to SKILL.md, se
 > Add a plain-English 3-line version to USER-GUIDE.md. Keep it short. No new scripts.
 > Last: update `skill_plan.md` — tick item 1 and write one line on what changed.
 
-### [ ] 2 — Publish the updated skill
+### [x] 2 — Publish the updated skill
+_Done: commit `8c28d09` pushed to AyS-0908/_AI_SKILLS; manifest + installs refreshed via Sync-SkillsManifest.ps1._
 **Goal:** get the change live everywhere: GitHub + Claude + Codex + manifest.
 **Run on:** best-1 @ 2/5 (mechanical).
 **Prompt for the AI Coder:**
