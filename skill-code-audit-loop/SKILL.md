@@ -42,6 +42,19 @@ Pragmatic default (solo dev): the main agent is both Conductor and Coder. Only
 the **Auditor runs as a fresh helper** — that fresh context is the whole point,
 and it is the one part worth the extra cost. One helper per audit round.
 
+## Models & effort
+
+Set by RANK, not by product name — today's names (Opus / Sonnet / "4.5") are only examples and WILL change. The loop picks tier + effort itself:
+
+| Job | Model rank | Effort (2=medium 3=high 4=xhigh 5=max) |
+|---|---|---|
+| Code + Fix (main session) | best-1 | 4/5 |
+| Code + Fix — sensitive phase (touches security, secrets, login, money, or data migration) | best | 4/5 |
+| Audit (subagent) | best | 3/5 |
+| Floors — never go below | best-1 | 2/5 |
+
+Invariant: the Auditor is at least as strong as the Coder.
+
 ## What each role reads first
 
 Both roles are AI agents in this harness, so their rules already EXIST — this skill POINTS to them, it does not restate them.
@@ -70,7 +83,7 @@ Run turns in order. One turn = one invocation. After each turn, update state and
 
 **Turn: AUDIT**
 1. Count the `## Audit fixes to implement` sections already in the plan file (call it N).
-2. Spawn a FRESH helper. Give it the AUDITOR HANDOFF PROMPT, then: *"Use the audit-it skill in phase-gate mode. Scope = the changed files for this phase plus the Phase X slice of `<absolute plan path>`. Write any Fix Plan into that exact file. Return the verdict."*
+2. Spawn a FRESH helper at **best tier, effort 3/5** (see Models & effort). Give it the AUDITOR HANDOFF PROMPT, then: *"Use the audit-it skill in phase-gate mode. Scope = the changed files for this phase plus the Phase X slice of `<absolute plan path>`. Write any Fix Plan into that exact file. Return the verdict."* The main session runs the Coder at **best-1 @ 4/5** (jump to **best @ 4/5** for sensitive phases — security, secrets, login, money, data migration).
 3. Re-read the plan and count the sections again:
    - **Still N** (no new section) -> Greenlight. Set `verdict=greenlight`, `turn=done`. Go to DONE.
    - **Now N+1** -> Fix Plan. Set `verdict=fixes`, `turn=fix`. Go to FIX.

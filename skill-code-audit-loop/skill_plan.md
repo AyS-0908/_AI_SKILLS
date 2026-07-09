@@ -34,7 +34,8 @@
 
 ## To-Do
 
-### [ ] 1 — Add the Models & Effort rules to the skill
+### [x] 1 — Add the Models & Effort rules to the skill
+_Done: added `## Models & effort` (rank-based table + invariant) to SKILL.md, set the AUDIT turn to spawn the auditor at best @ 3/5 with a Coder best-1 @ 4/5 note (best @ 4/5 sensitive), and added a plain-English "Which AI it uses" blurb to USER-GUIDE.md._
 **Goal:** make the loop set model + effort by itself (per the table above), so you never set it by hand.
 **Run on:** best-1 @ 2/5 (simple doc edit).
 **Prompt for the AI Coder:**

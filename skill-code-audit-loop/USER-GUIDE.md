@@ -72,6 +72,10 @@ You don't have to re-teach it. Each round it:
 
 None of this is re-invented — the skill points at rules and skills you already own.
 
+## Which AI it uses (you don't set this)
+
+The loop picks the AI power and effort by itself. The builder runs on a strong model at high effort — and jumps to the *top* model for sensitive work (logins, money, secrets, data moves). The checker always runs at least as strong as the builder, so it can never be the weaker judge. You never dial any of this in.
+
 ## What it will NOT do
 
 - It won't invent work outside the phase you named.
