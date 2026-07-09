@@ -6,9 +6,10 @@ Local workbench for creating, editing, and reviewing AI agent skills before publ
 
 ## Docs map (per read Order)
 
-1. `Progress.md`: for current state and next action.
-2. `Architecture.md`: when system understanding is needed.
-3. `README.md`: for the short human-facing summary.
+1. `SKILLS-DESIGN.md`: the whole-system design — read first.
+2. `Progress.md`: for current state and next action.
+3. `Architecture.md`: when system understanding is needed.
+4. `README.md`: for the short human-facing summary.
 
 ## Current Objective
 
@@ -20,14 +21,14 @@ Source: `Progress.md`
 - Start: Not defined
 - Build: Not defined
 - Test: Not defined
-- Verify: inspect changed `skill-*/SKILL.md` files and compare against `C:\Users\aymar\.ai-agents\Skills_usage.md`
+- Verify: inspect changed `skill-*/SKILL.md` files and compare against `C:\Users\aymar\AYS_CODING\_AI_AGENTS\usage_skills.md`
 
 
 ## Constraints
 
 - One active skill per folder: `skill-<slug>\SKILL.md`.
 - This is the local authoring/workbench folder.
-- Agents consume the published repo `AyS-0908/SKILLS`, not this folder directly.
+- This folder IS the published set: agents consume the skills by pushing it to `AyS-0908/_AI_SKILLS` and reading the generated `skills-manifest.json`.
 - Do not use the old Google Drive / Apps Script cockpit unless the user explicitly revives it.
 
 ## Verification
