@@ -60,6 +60,9 @@ Read:
 - By default, artifacts are written inside the analyzed root under a reserved
   `_DATA_CLEANING\<timestamp>` folder, which is excluded from the scan. Pass an
   explicit `-OutputPath` to override (any location, including outside the source).
+- VCS/dev-metadata folders are excluded from the scan by default and must never be
+  inventoried or moved: `.git`, `node_modules`, `.venv`, `__pycache__`, `.idea`,
+  `.vs` (tunable via `organization.scan_exclude_dirs` in `config.json`).
 - Analyze never modifies your existing files; it only writes into the artifacts folder.
 
 Run (default in-source artifacts):

@@ -20,6 +20,7 @@
     "level_2_min_files": 4,
     "archive_destination": "_ARCHIVE",
     "artifacts_dir": "_DATA_CLEANING",
+    "scan_exclude_dirs": [".git", "node_modules", ".venv", "__pycache__", ".idea", ".vs"],
     "max_folder_depth": 2,
     "startup_level1": [
       "ROOT",

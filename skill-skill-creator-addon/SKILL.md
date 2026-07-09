@@ -17,7 +17,7 @@ status: active
 
 ## Gotchas
 
-No known gotchas.
+Any deterministic script that scans a user folder must exclude VCS/dev-metadata dirs (.git, node_modules, …) by defaults.
 
 This skill is a wrapper. It does NOT replace an AI-Agent's `skill-creator`. It runs alongside it: gates fire at four marked moments inside the standard workflow.
 

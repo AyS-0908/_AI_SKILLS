@@ -49,6 +49,17 @@ function Invoke-Phase2Inventory {
         })
     }
 
+    # VCS/dev-metadata internals (.git etc.) are untouchable: inventorying them wastes
+    # host tokens, flags normal refs/reflogs as duplicates, and a planned move on one
+    # would corrupt the repo. Excluded by directory name at any depth.
+    $excludeDirs = @(@($Config.organization.scan_exclude_dirs) | Where-Object { $_ })
+    if ($excludeDirs.Count -gt 0) {
+        $items = @($items | Where-Object {
+            $segments = $_.FullName.Substring($Source.Length).TrimStart("\").Split("\")
+            -not ($segments | Where-Object { $excludeDirs -contains $_ })
+        })
+    }
+
     $folders = @($items |
         Where-Object { $_.PSIsContainer } |
         ForEach-Object { $_.FullName.Substring($Source.Length).TrimStart("\") } |

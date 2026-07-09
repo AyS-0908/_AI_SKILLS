@@ -272,13 +272,17 @@ try {
     Set-Content -LiteralPath (Join-Path $defSource "a.txt") -Value "alpha" -Encoding UTF8
     New-Item -ItemType Directory -Force -Path (Join-Path $defSource "_DATA_CLEANING\old-run") | Out-Null
     Set-Content -LiteralPath (Join-Path $defSource "_DATA_CLEANING\old-run\stale.json") -Value "{}" -Encoding UTF8
+    New-Item -ItemType Directory -Force -Path (Join-Path $defSource ".git\refs\heads") | Out-Null
+    Set-Content -LiteralPath (Join-Path $defSource ".git\refs\heads\main") -Value "abc123" -Encoding UTF8
     $defRun = Invoke-Runner -Arguments @("-SourcePath", $defSource, "-SkipAI")
     Assert-True ($defRun.exit_code -eq 0) "Default-output run must pass."
     $defRunDir = @(Get-ChildItem -LiteralPath (Join-Path $defSource "_DATA_CLEANING") -Directory | Where-Object Name -ne "old-run")[0]
     Assert-True ($null -ne $defRunDir -and (Test-Path (Join-Path $defRunDir.FullName "manifest.json"))) "Artifacts must be written under <source>\_DATA_CLEANING\<timestamp>."
     $defManifest = Get-Content (Join-Path $defRunDir.FullName "manifest.json") -Raw | ConvertFrom-Json
     Assert-True (@($defManifest.files | Where-Object { "$($_.rel_path)" -like "_DATA_CLEANING*" }).Count -eq 0) "The reserved artifacts folder must be excluded from the scan."
-    Assert-True (@($defManifest.files).Count -eq 1) "Only real content files are inventoried, not prior artifacts."
+    Assert-True (@($defManifest.files | Where-Object { "$($_.rel_path)" -like ".git*" }).Count -eq 0) "Default scan exclusions (.git) must be excluded from the scan."
+    Assert-True (@($defManifest.folders | Where-Object { "$_" -like ".git*" }).Count -eq 0) "Excluded directories must not appear in the folder list."
+    Assert-True (@($defManifest.files).Count -eq 1) "Only real content files are inventoried, not prior artifacts or VCS internals."
     Pass "default in-source artifacts and scan exclusion"
 
     # -ContinuePartial may be enabled on resume (previously immutable).

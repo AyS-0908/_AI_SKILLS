@@ -24,6 +24,9 @@ contradict / duplicate / belong in another doc?). Skill type: **RIGID route,
 heuristic per-doc work** — the route is written-down rules; the cleaning cannot
 be scripted.
 
+Run standalone? The fixed report (§6) is the done-bar; for higher assurance have
+a FRESH context verify the applied diff (as code-audit-loop does with its auditor).
+
 ## Gotchas
 
 - File reads can be stale, empty, or wrongly encoded. Read the LIVE file before judging it — never clean from memory.
@@ -93,6 +96,7 @@ Mechanical / greppable — done every run so nothing is silently skipped:
 - verbosity outliers: paragraphs or lines far longer than the doc's norm (e.g. a current-state doc carrying a multi-paragraph build narrative).
 - scope violations vs the ownership map (including each doc's self-declared "do not put here").
 - drift vs reality: `git diff` / `git status` and doc counts / claims vs the code anchor.
+- self-written pointers (APPLY mode, after all edits): re-run the broken-reference scan on every pointer THIS pass wrote — confirm each `§ heading` and `[file]` target actually exists. The pass must not introduce the very defect it hunts.
 - whole-file removal candidates (final step): a task-scoped file whose task is closed and nothing references it. REPORT-ONLY — one line each (file + why + instruction to the user). On user OK only: MOVE to `_to_delete_<DATE>\` inside the project folder; never rename in place, never delete outright.
 
 These are scriptable but deliberately NOT scripted (prompt-only MVP). Add a `scan.ps1` only if a run shows these checks being skipped or applied inconsistently.
