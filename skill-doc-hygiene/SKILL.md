@@ -52,6 +52,8 @@ be scripted.
 
 Concrete files below = `code-GO_VIRAL`. In another repo, map each ROLE to its file and skip roles with no doc.
 
+Unmapped doc (no matching role, e.g. `SKILLS-DESIGN.md`, `CLAUDE.md`) → assign the nearest role and clean under it, OR mark it a pointer doc and only verify its pointers resolve.
+
 | Role → file | Owns | Must NOT contain |
 |---|---|---|
 | agents → `AGENTS.md` | routing, project rules, commands, gotchas, verification pointers | live state, detailed specs, phase history, implementation narrative |
@@ -62,6 +64,8 @@ Concrete files below = `code-GO_VIRAL`. In another repo, map each ROLE to its fi
 | changelog → `CHANGELOG.md` | completed changes / audit-history trail (per pass) | live state, future plans |
 | (vision → `goviral_vision.md`) | suite vision + roadmap / product direction | module build specifics, current state |
 
+No changelog doc in the repo → keep a condensed recent-history list in progress; do NOT create a CHANGELOG unless the user asks.
+
 Each doc here already self-declares its boundary (`ARCHITECTURE.md` "Do not put here", `PROGRESS.md` "Update Rule", `AGENTS.md` "File scope"). Treat that as the authoritative owner test: a line that violates the doc's own stated scope is a scope violation, not a judgment call.
 
 ## 3. Per-doc two-pass loop
@@ -71,6 +75,7 @@ For each doc, in route order:
 **Pass A — in-doc (tighten):**
 - cut content the anchor proves stale or wrong (fix a STATE fact; FLAG a drifted RULE fact per the contradiction rule).
 - cut lines an AI coder can trivially infer, or that restate a neighboring line (obvious / low-value).
+- CUTTABLE test: a detail (score, path, sub-fact) is cuttable ONLY if re-derivable from git / code / the owning doc; otherwise it MOVES, never vanishes.
 - cut in-doc redundancy (the same fact stated twice).
 - tighten to AI-native terse style: brief, factual, no marketing or narration.
 
@@ -88,12 +93,14 @@ Mechanical / greppable — done every run so nothing is silently skipped:
 - verbosity outliers: paragraphs or lines far longer than the doc's norm (e.g. a current-state doc carrying a multi-paragraph build narrative).
 - scope violations vs the ownership map (including each doc's self-declared "do not put here").
 - drift vs reality: `git diff` / `git status` and doc counts / claims vs the code anchor.
+- whole-file removal candidates (final step): a task-scoped file whose task is closed and nothing references it. REPORT-ONLY — one line each (file + why + instruction to the user). On user OK only: MOVE to `_to_delete_<DATE>\` inside the project folder; never rename in place, never delete outright.
 
 These are scriptable but deliberately NOT scripted (prompt-only MVP). Add a `scan.ps1` only if a run shows these checks being skipped or applied inconsistently.
 
 ## 5. Guardrails (never simplify these away)
 
 - **Never DELETE a fact.** Cut stale / obvious LINES; a true fact only MOVES (with a pointer) or gets FLAGGED.
+- **Owning doc is outside this repo.** Do NOT write into another project's folder. Leave a pointer in the cleaned doc + list the facts in the report for the caller to confirm / transcribe.
 - **One fact, one doc.** No fact in two docs unless one copy is a pointer.
 - Keep each doc focused on its "Owns" scope.
 - **Do NOT auto-resolve these — list them for the user instead:**
@@ -104,11 +111,12 @@ These are scriptable but deliberately NOT scripted (prompt-only MVP). Add a `sca
 
 ## 6. Fixed output report (identical every run)
 
-Header line: `MODE: DRY-RUN (report only)` **or** `MODE: APPLY (edits made)` · anchor one-liner (branch · dirty? · latest commit).
+Header line: `MODE: DRY-RUN (report only)` **or** `MODE: APPLY (edits made)` · anchor one-liner (branch · dirty? · latest commit) — reports the PRE-edit `git status`.
 
-Then exactly these four sections:
+Then exactly these five sections:
 
 - **Per doc** — one compact block per file: `<file>` → what changed (or WOULD change) and why; one bullet per item.
 - **Unresolved — needs your decision** — contradictions + judgment calls from the Guardrails, numbered. If none, say "none".
 - **Facts moved** — `fact — <from> → <to>`, one line each.
+- **Whole-file removal candidates** — one line each (file + why + instruction to the user); MOVE to `_to_delete_<DATE>\` on user OK only. If none, say "none".
 - **Anchor check** — `git diff --check` result + `git status` (short) + any doc-vs-code drift found.

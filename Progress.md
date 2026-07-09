@@ -8,6 +8,7 @@ System design DECIDED and published in `SKILLS-DESIGN.md` (read that first). `co
 
 ## Done (recent skills work)
 
+- 2026-07-09: `doc-hygiene` passed its first live test (on this project's docs), then all 6 test-feedback improvements encoded into its SKILL.md (incl. whole-file removal candidates: report-only → `_to_delete_<DATE>\` on user OK). Its skill_plan.md deleted (done; recoverable in git). Design plan step 5 gained the fresh-helper-canonical clause.
 - 2026-07-09: `SKILLS-DESIGN.md` rewritten as the system backbone (5 skill types, birth rules, DEFINE→MAKE→ROAST→FORMALIZE, gaps+plan). Delegate-then-audit: writer → fresh auditor → fix. Commit `18e7261`.
 - 2026-07-09: `code-audit-loop` Models & effort rules encoded (rank-based; auditor ≥ coder). Published: commit `8c28d09`, manifest rebuilt, mirrored to `.claude\skills` + `.codex\skills`.
 - 2026-07-09: Fixed `_AI_AGENTS/scripts/Sync-SkillsManifest.ps1` em-dash crash on Windows PowerShell 5 (scheduled sync was silently broken).

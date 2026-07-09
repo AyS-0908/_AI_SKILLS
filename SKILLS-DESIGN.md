@@ -119,7 +119,7 @@ Legend: ✅ done · 🟡 in progress · 🔴 missing.
 2. **Finish `code-audit-loop`** — the 3 items in `skill_plan.md` (the last of which is the live test on project D-1b).
 3. **Add a "roast" checklist to `audit-it`:** reuse checked? over-engineered? scope crept in silently? → **closes GAP #2.**
 4. **Build the missing Spec → Plan step** — this is likely `ideasup-flow`'s reserved Stage 8; check `skill-ideasup-flow/references/pipeline-source-spec.md` and decide reuse-vs-new before building anything → **closes GAP #1.**
-5. **Wire the section-5 birth rules into `skill-creator-addon`** (type declaration + Blocks-first collision check).
+5. **Wire the section-5 birth rules into `skill-creator-addon`** (type declaration + Blocks-first collision check), plus one clause: any skill that spawns a fresh helper must put `AGENTS-canonical.md` in that helper's read-first list (fresh helpers start with zero context; the main session gets the canonical automatically, helpers don't).
 6. **LATER, only after 1–5 are proven:** loop #2 = Story → Spec (copy `code-audit-loop` — do **not** extract a shared engine yet; earn it with two real loops first); the business-plan stage; the document family.
 
 **Deliberately rejected** (a choice, not an oversight): a central dependency table, an automated skill map, and a shared loop engine *now*.
