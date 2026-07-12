@@ -1,23 +1,19 @@
 ---
 name: benchmark
 description: >
-  Structured competitive benchmark with a deterministic pipeline. Collects
-  web-sourced data into a validated benchmark.json (every entity × criterion
-  cell machine-checked for completeness, source URLs, dates), then renders an
+  Structured competitive benchmark with a deterministic pipeline: Collects
+  web-sourced data into a validated benchmark.json, then renders an
   evidence-backed comparison matrix with an auto-computed data-quality section.
-  Use this skill WHENEVER the user wants to compare two or more external
-  entities — products, tools, companies, vendors, platforms, services, plans —
+  Use this skill WHENEVER you want to compare external entities 
+  — products, tools, companies, vendors, platforms, services, plans —
   on pricing, features, market position, or any criteria, even if they never
-  say "benchmark": "compare X vs Y", "how does X stack up against Y", "which
-  is cheaper over 2 years", "competitive analysis", "competitive landscape",
-  "market comparison", "X vs the market / vs alternatives". Consult this skill
-  BEFORE running any web searches for such a comparison — it defines how the
-  data must be collected, sourced, and validated.
+  say "benchmark": "compare X vs Y", "competitive analysis", "competitive landscape",
+  "market comparison". Consult this skill BEFORE web searches for such a comparison.
   Do NOT trigger for: internal audits, consistency checks, document reviews,
   comparing versions of the user's own files or code, performance benchmarking
   of the user's own software, SWOT of a single entity without competitors,
   open-ended market research without entity-vs-entity comparison
-  (use deep-research), or single facts like "how much does X cost".
+  (use deep-research).
 ---
 
 # Benchmark Skill
