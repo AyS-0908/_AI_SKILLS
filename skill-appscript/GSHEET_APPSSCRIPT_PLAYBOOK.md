@@ -273,7 +273,7 @@ Every row is a design we shipped, then removed. The **Keep** column is the alter
 
 **Legend** — continues Part I's `[LIFT]` (copy the file ~80% as-is) · `[PATTERN]` (copy the technique) · `[SKIP]` (project-specific). Part II adds **`[AVOID]`** — a live anti-pattern mined from the aiStrategy formula prototype; copy the *sheet shape*, never the mechanism.
 
-**Sourcing note.** AIssistant claims trace to its V2.1 spec + code files. **Every aiStrategy citation here is workbook-observable** — visible in the shipped sheet itself (cell values, tab names, `[type]` tags). aiStrategy's design Google Doc is out of scope and **not quoted**; where a rule needs a spec, it is grounded in GoViral or AIssistant instead.
+**Sourcing note (audit-finalized).** The AIssistant engine section is grounded in the **V2.1 SPECIFICATION** (design intent), by owner decision — it is *not* verified line-by-line against shipped code. The actual engine source exists and matches the spec's surface (`Config-workflow`, `columnType`, `callGemini`, `builder_*`, `workflow_Processor`, `generateSheetsByWorkflow` all confirmed present) in the Drive doc **`aissistant_refactoring- V2.1. CODE FILES`** + the **WORKFLOW GENERATOR** sheets (V2.2 / Prod-v1) — mine those if you later want to promote engine rows from *specified* to *code-verified*. **Every aiStrategy citation is workbook-observable** — visible in the shipped sheet itself (cell values, tab names, `[type]` tags); its own design Doc is out of scope and **not quoted**. The two "AyS Scripts" `:run` libraries are a **separate utility/launcher system**, not the engine — catalogued (names only) in the appendix, not mined for patterns.
 
 ---
 
@@ -478,3 +478,29 @@ Extra ordered steps that wrap Part I's 13-step checklist. **Step 0 precedes Part
 4. **If providers are user-selectable per run:** scaffold **`_settings_api`**, keep the key in Script Properties, and keep **one wire format** behind it (params only, no parallel adapters).
 5. **If the founder needs a field-type annotation or curated lists:** add the R1 **`[type]`** row (R2 canonical, discover variable-width by regex) and an **`_options_list`** tab — but keep every `===`-compared status set in frozen constants, never in the sheet.
 6. **Reconfirm before first RUN:** on a fresh workbook, run the validator, then `generateSheetsByWorkflow` once and confirm idempotence; hand to the founder for live validation before the next objective (Part I *done = owner-validated*).
+
+---
+
+## Appendix — Available libraries (catalog only)
+
+The two `:run` links resolve to the **"AyS Scripts" ecosystem** — a *general-purpose* reusable-scripts system, **separate from the AIssistant AI-workflow engine**. Catalogued here (names + one line) per owner decision; **not** mined for patterns. Reuse by adding the library (`AysLib`, id `1xBG8Ku98P4WYhAinaKtKbGal5d9cTgv0D0sC3VkmIGluv0DPZvaacQam`) or the add-on, then calling the function — do not re-implement.
+
+**`ays_AllScripts` (`AysLib`) — 25-file personal utility library.** Signature hits confirm it is utility code (`UrlFetchApp`, `openai`, `Ask AI`), not the engine (no `Config-workflow`/`builder_*`/`workflow_Processor`).
+
+| Function / file | One-line | Overlaps a Part I/II pattern? |
+|---|---|---|
+| `textInSheet_code` + `_UI` + `_Specification` | Write-in-cell long-text editor (menu → active cell in a textarea → save back). | = Part I §4 write-in-cell / AIssistant TextInSheet — a shipped implementation. |
+| `dependant_validation` | Cascading / dependent dropdowns (child list narrows from parent choice). | **New** — not in Part I; worth lifting if you build hierarchical pickers. |
+| `sheetAsApi_GET` / `sheetAsApi_POST` | Expose a sheet as a REST endpoint via `doGet`/`doPost`. | **New** — a v2 deployment surface Part I deliberately omits. |
+| `askAi_anyPrompt` | Generic one-shot AI prompt call. | = utility.gs `callGemini`, provider-generic. |
+| `uniqueId` | Generate a unique ID. | = `SheetIO.nextId` (Part I §5). |
+| `json_import` | Import/parse JSON into the sheet. | supports the config-as-JSON patterns. |
+| `url_findHyperlink` | Extract the hyperlink target behind a cell's display text. | niche sheet helper. |
+| `namedRange_code` + `_sidebar` | Named-range manager (create/list/navigate) with a sidebar (largest module, ~60K). | niche; sidebar UI (contrast Part I's retired-sidebar note). |
+| `exportWkbk_csvCode` + `_csvForm` | Export workbook tabs to CSV. | = Part II "config-sheet backup" cousin. |
+| `profile_emailFormat` / `profile_emailDomainCheck` / `profile_linkedinUrl` / `profile_Gender` | Contact-data validators/normalizers (email format, domain check, LinkedIn URL, gender inference). | domain enrichment helpers. |
+| `cy_sirenAllInfo` / `cy_functionsToInfo` | French company (SIREN) enrichment lookups. | `[SKIP]` FR-specific. |
+| `n8n_icpVp` / `n8n_webhookScheduler` | n8n webhook callers (ICP/value-prop; scheduled webhook trigger). | = Part I "offload complexity to n8n" boundary. |
+| `checkiFrame` | iframe embeddability check. | niche. |
+
+**`AyS_AddOn_Library` / `scriptsKit- AddOn` — universal launcher add-on** (skeleton stage): detects host app (`SHEET`/`DOC`/`SLIDE` via `core_getHostApp`), shows a **checkbox sidebar** to pick which library scripts run, stores the selection in `DocumentProperties`, and installs an `onOpen` trigger to auto-run them. Depends on `AysLib`. *Note:* its checkbox-sidebar activation is the opposite of Part I §8's "compute the actionable set server-side, retire the checkbox UI" lesson — fine for a generic script launcher, **not** a model for an operator workflow tool.
