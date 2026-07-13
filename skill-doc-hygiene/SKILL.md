@@ -10,7 +10,7 @@ description: >-
   judgment. Trigger for: "clean / tidy / prune / dedupe / reconcile the project
   docs", a daily or recurring doc-hygiene pass, "my docs have gone stale or
   contradict each other", "progress / changelog / plan drifted from the code".
-  Do NOT trigger for: readiness or quality audits and fix plans (use audit-it),
+  Do NOT trigger for: readiness or quality audits and fix plans (use code-audit),
   memory-file consolidation (use consolidate-memory), moving / renaming /
   deduping FILES or folder reorganization (use folder-cleaning), or writing
   brand-new docs from scratch (use ai-agent-harness).

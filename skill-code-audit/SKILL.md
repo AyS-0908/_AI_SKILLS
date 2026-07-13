@@ -1,5 +1,5 @@
 ---
-name: audit-it
+name: code-audit
 description: >
   Audit startup-sized technical projects by orchestrating PRD/spec review, repo
   inventory, native checks, installed plugins/MCPs, and AI judgment, then emit a

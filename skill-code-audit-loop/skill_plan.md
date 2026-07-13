@@ -14,21 +14,11 @@
 |---|---|
 | Who codes | Main agent — it conducts, codes, and fixes |
 | Who audits | One FRESH subagent per round — it audits only, never fixes |
-| Auditor engine | Calls the `audit-it` skill; never re-writes audit logic |
+| Auditor engine | Calls the `code-audit` skill; never re-writes audit logic |
 | Doc cleanup | Light tidy each turn; full `doc-hygiene` pass only when the whole feature is done |
 | Safety | Max 3 rounds, then stop · human gives the final OK · fresh auditor every round |
 
-**Models & effort** — use RANK, not names. Today's names (e.g. "Opus / Sonnet / 4.5") are only examples and WILL change in a few months.
-
-| Job | Model rank | Effort |
-|---|---|---|
-| Code + Fix (main session) | best-1 | 4/5 |
-| Code + Fix — *sensitive* phase\* | best | 4/5 |
-| Audit (subagent) | best | 3/5 |
-| **Floors — never go below** | **best-1** | **2/5** |
-
-\*Sensitive = touches security, secrets, login, money, or data migration.
-**Rule that must always hold:** the auditor is at least as strong as the coder.
+**Models & effort** — see the authoritative `## Models & effort` table in `SKILL.md` (encoded there by item 1). Not duplicated here, so the two can't drift.
 
 ---
 

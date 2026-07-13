@@ -43,7 +43,7 @@ Every skill is exactly one of these. The type carries its own non-negotiable rul
 |---|---|---|---|
 | **LOOP** | Repeats make → roast → fix until green | **Safety rails are mandatory:** a round cap, a FRESH reviewer (new context — never the maker grading its own work), and your final OK | `code-audit-loop` (the only true loop) |
 | **PIPELINE** | Ordered stages, run once through, each producing a file; stop/resume anywhere | Stages never overlap; a later stage *points back* to earlier files, never re-does them | `ideasup-flow` |
-| **BLOCK** | A small reusable helper *meant* to be called by other skills — your reuse shelf | One clear output, assumes zero context, safe to call from anywhere | `audit-it`, `doc-hygiene`, `github-sync` |
+| **BLOCK** | A small reusable helper *meant* to be called by other skills — your reuse shelf | One clear output, assumes zero context, safe to call from anywhere | `code-audit`, `doc-hygiene`, `github-sync` |
 | **DOER** | One concrete job in one area, called directly by you | Sharp "Do NOT trigger" lines so it never collides with a neighbour | `appscript`, `n8n`, `hostinger`, `benchmark`, `folder-cleaning` |
 | **META** | Acts on skills themselves | Never fires during normal work | `ai-agent-harness`, `skill-creator-addon` |
 
@@ -60,7 +60,7 @@ Two directions, handled two different ways on purpose:
 | **Downward** | "What do I call?" | A `**Uses:**` line written inside the skill, right next to where it calls another. It lives where you already edit, so it can't drift. |
 | **Upward** | "Who calls me? What already exists?" | **Not kept anywhere.** Derived on demand: search the `Uses:` lines and read the auto-built list of all skills (`skills-manifest.json`, refreshed automatically). |
 
-Today the entire call graph (who-calls-whom) is one line: `code-audit-loop → audit-it (hard dependency), doc-hygiene, github-sync`. Every other skill calls nothing.
+Today the entire call graph (who-calls-whom) is one line: `code-audit-loop → code-audit (hard dependency), doc-hygiene, github-sync`. Every other skill calls nothing.
 No central hand-kept table, no map-generator script. At 12 skills that would rot faster than it helps (that's the "YAGNI" rule — *You Aren't Gonna Need It*). How agents load skills is documented in `_AI_AGENTS/usage_skills.md` — not repeated here.
 
 ---
@@ -85,7 +85,7 @@ The real test of section 1–5: can they absorb your *next* planned family — p
 |---|---|---|
 | DEFINE | Thinking assistant clarifies what the document must achieve | (part of the loop) |
 | MAKE | Draft writing | inside a **LOOP** |
-| ROAST | A fresh-context critic attacks the draft | a **BLOCK** — the doc-roaster, sibling to `audit-it` (which is the *code*-roaster) |
+| ROAST | A fresh-context critic attacks the draft | a **BLOCK** — the doc-roaster, sibling to `code-audit` (which is the *code*-roaster) |
 | FORMALIZE | Render to Word / PowerPoint / Excel | **DOERs** (or reuse the existing `docx` / `pptx` / `xlsx` skills) |
 
 The orchestrating **doc-loop** is a LOOP with the *same* rails: round cap, fresh roaster, your final OK. If the whole journey chains stages with file hand-offs, that chain is a **PIPELINE**, exactly like `ideasup-flow`.
@@ -117,7 +117,7 @@ Legend: ✅ done · 🟡 in progress · 🔴 missing.
 
 1. **This rewrite.** ✅ (this document).
 2. **Finish `code-audit-loop`** — the 3 items in `skill_plan.md` (the last of which is the live test on project D-1b).
-3. **Add a "roast" checklist to `audit-it`:** reuse checked? over-engineered? scope crept in silently? → **closes GAP #2.**
+3. **Add a "roast" checklist to `code-audit`:** reuse checked? over-engineered? scope crept in silently? → **closes GAP #2.**
 4. **Build the missing Spec → Plan step** — this is likely `ideasup-flow`'s reserved Stage 8; check `skill-ideasup-flow/references/pipeline-source-spec.md` and decide reuse-vs-new before building anything → **closes GAP #1.**
 5. **Wire the section-5 birth rules into `skill-creator-addon`** (type declaration + Blocks-first collision check), plus one clause: any skill that spawns a fresh helper must put `AGENTS-canonical.md` in that helper's read-first list (fresh helpers start with zero context; the main session gets the canonical automatically, helpers don't).
 6. **LATER, only after 1–5 are proven:** loop #2 = Story → Spec (copy `code-audit-loop` — do **not** extract a shared engine yet; earn it with two real loops first); the business-plan stage; the document family.

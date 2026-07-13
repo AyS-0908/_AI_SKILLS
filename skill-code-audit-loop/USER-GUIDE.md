@@ -38,7 +38,7 @@ That's the whole interface. No commands to memorize.
 You:  "Run the loop on Phase 3."
 
   1. CODER writes Phase 3 and updates its notes.
-  2. A FRESH AUDITOR checks it        ── this is your audit-it skill, reused
+  2. A FRESH AUDITOR checks it        ── this is your code-audit skill, reused
         │
         ├─ Looks good?  → stops, tells you what passed, waits for YOUR OK.
         │
@@ -59,9 +59,9 @@ You:  "Run the loop on Phase 3."
 
 And one more: the checker always runs as a **fresh** AI with no memory of writing the code — so it can't rubber-stamp its own work. That's exactly why you used to open a new session by hand.
 
-## Does this replace my `audit-it` skill?
+## Does this replace my `code-audit` skill?
 
-**No — it uses it.** Think of `audit-it` as the inspector. This skill is the foreman who calls the inspector at the right moments. Your `audit-it` skill still works on its own whenever you want a one-off review, and it's also the "Auditor" step inside this loop. Nothing was copied or duplicated — the loop simply *calls* it.
+**No — it uses it.** Think of `code-audit` as the inspector. This skill is the foreman who calls the inspector at the right moments. Your `code-audit` skill still works on its own whenever you want a one-off review, and it's also the "Auditor" step inside this loop. Nothing was copied or duplicated — the loop simply *calls* it.
 
 ## It already follows your usual standards
 
@@ -79,9 +79,9 @@ The loop picks the AI power and effort by itself. The builder runs on a strong m
 ## What it will NOT do
 
 - It won't invent work outside the phase you named.
-- It won't audit by itself (it always calls `audit-it`).
+- It won't audit by itself (it always calls `code-audit`).
 - It won't declare the phase "done and shipped" — only you do that.
-- If `audit-it` isn't available, it stops right away (before writing any code) and tells you — it never fakes a review.
+- If `code-audit` isn't available, it stops right away (before writing any code) and tells you — it never fakes a review.
 
 ## The one file you might see
 

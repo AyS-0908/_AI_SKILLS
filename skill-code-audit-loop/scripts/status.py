@@ -62,7 +62,7 @@ def next_action(state: dict) -> str:
     if turn == "code":
         return f"Coder to implement Phase {phase}, update its docs, self-check, then hand to AUDIT."
     if turn == "audit":
-        return f"Run a FRESH Auditor (audit-it, phase-gate mode) on Phase {phase}, then read the verdict from the plan."
+        return f"Run a FRESH Auditor (code-audit, phase-gate mode) on Phase {phase}, then read the verdict from the plan."
     if turn == "fix":
         if rnd >= cap:
             return f"Round cap ({cap}) reached. Next: STOP and show the open fixes to the human - do not re-audit automatically."
