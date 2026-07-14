@@ -16,13 +16,6 @@ description: >
 
 This Skill assumes AGENTS.md already governs global coding behavior. Do not restate global coding rules here.
 
-## Gotchas
-
-- getLastRow/getLastColumn return last content position, not sheet capacity. Guard empty sheets before getRange.
-- Trigger executions can overlap. Use LockService and idempotent flows for shared writes.
-- UrlFetchApp can return HTTP 200 with a semantic error in the body. Check the body, not the status code.
-- Simple triggers have authorization restrictions. Use installable triggers for authorized services.
-
 ## ROLE
 
 Expert Google Apps Script builder and auditor for simple, robust v1 systems used in Google Workspace.
@@ -40,25 +33,29 @@ Expert Google Apps Script builder and auditor for simple, robust v1 systems used
 
 Classify the request first.
 
-SPEC:
-- Use for specification, architecture, workflow design, implementation planning, and data modeling.
-- Goal: produce an implementation-ready Apps Script specification.
+- **SPEC** — specification, architecture, workflow design, planning, data modeling. Goal: an implementation-ready Apps Script specification.
+- **BUILD** — code, implementation, feature, refactor, or function creation. Goal: implement one phase, feature, or fix.
+- **AUDIT** — review, consistency check, issue finding, risk analysis. Goal: find real GAS-specific issues and propose atomic fixes.
+- **DEBUG** — errors, broken behavior, failed triggers/web apps/automations. Goal: isolate the failing step and propose the smallest safe correction.
 
-BUILD:
-- Use for code, implementation, feature addition, refactor, or Apps Script function creation.
-- Goal: implement one phase, feature, or fix.
+Mixed request: split into ordered sub-modes; do not code before the needed SPEC or AUDIT decision is resolved.
 
-AUDIT:
-- Use for review, consistency check, issue finding, and risk analysis.
-- Goal: find real GAS-specific issues and propose atomic fixes.
+## REFERENCE_ROUTING
 
-DEBUG:
-- Use for errors, broken behavior, failed triggers, failed web apps, or failed sheet automations.
-- Goal: isolate the failing step and propose the smallest safe correction.
+Open **each** row whose concern the task touches — real tasks match two or three. Never open a file you do not need.
 
-Mixed request:
-- Split into ordered sub-modes.
-- Do not code before the needed SPEC or AUDIT decision is resolved.
+| The task involves… | Open |
+|---|---|
+| Writing or changing code | `references/build-patterns.md` — copy-paste recipes + runnable self-checks |
+| Reviewing, debugging, or verifying code (AUDIT / DEBUG) | `references/reviewing.md` — audit checklist, debug isolation, test strategy |
+| Product/data contract, status model, schema, headers, IDs, sheet I/O, bootstrap, tenancy, config, secrets, locks, triggers, state, or logs | `references/data-sheets.md` |
+| Calling an external API, or building HTML / menus / dialogs / forms | `references/apis-ui.md` |
+| Architecture choice, long or resumable jobs, deployment / clasp, or an MVP→Editor add-on path | `references/build-operate.md` |
+
+- The four rule files (`data-sheets`, `apis-ui`, `build-operate`, `reviewing`) each hold the rule **and** its implementation together. `build-patterns.md` holds runnable code.
+- Precedence: this SKILL.md wins over a reference file; a **rule wins over a code sample**; if the user overrides explicitly, follow the user.
+- If a needed file is unavailable, continue with the fallback schema below, do not invent its content, and say what was missing only if it affected the answer.
+- `references/playbook/archive/` is historical evidence. Do **not** load it.
 
 ## GAS_RUNTIME_RULES
 
@@ -71,166 +68,58 @@ Mixed request:
 
 ## GAS_ARCHITECTURE_RULES
 
-Separate when relevant:
-- UI: menus, dialogs, sidebars, alerts, HTML service.
-- Service adapters: SpreadsheetApp, DriveApp, GmailApp, UrlFetchApp, external APIs.
-- Business logic: pure transformation and rules.
-- Configuration and state: constants, PropertiesService, sheet configuration, deployment settings.
+Separate when relevant: **UI** (menus, dialogs, sidebars, alerts, HTML service) · **Service adapters** (SpreadsheetApp, DriveApp, GmailApp, UrlFetchApp, external APIs) · **Business logic** (pure transformation and rules) · **Configuration and state** (constants, PropertiesService, sheet configuration, deployment settings).
 
-Use one source of truth for:
-- sheet names
-- headers
-- statuses
-- IDs
-- trigger names
-- property keys
-- config constants
-- deployment assumptions
-
-## GAS_SERVICE_RULES
-
-- Minimize calls to Google services.
-- Prefer: read range once -> transform arrays -> batch write once.
-- Avoid per-row calls to SpreadsheetApp, DriveApp, GmailApp, UrlFetchApp, and similar services.
-- Use LockService for concurrent triggers or shared writes.
-- Use PropertiesService for config or small state, not large datasets.
-- Use CacheService only when it clearly reduces repeated expensive work.
-- Keep trigger flows idempotent when duplicate or overlapping executions are possible.
-- Avoid coupling core logic to UI or active spreadsheet state unless the workflow requires it.
-
-## GAS_EXTERNAL_API_RULES
-
-For UrlFetchApp and external APIs, handle:
-- transport failure
-- non-2xx HTTP status
-- HTTP 200 with semantic error in the response body
-- invalid or unexpected JSON
-- retry safety
-- idempotency risk
-- secrets and config outside core code when relevant
+Keep one source of truth for: sheet names, headers, statuses, IDs, trigger names, property keys, config constants, deployment assumptions.
 
 ## GAS_HIGH_SIGNAL_CHECKS
 
-Sheets:
-- Guard empty sheets before getRange calls.
-- getLastRow and getLastColumn return last content position, not sheet capacity.
-- getValues returns a 2D array.
-- Use getDisplayValues when comparing what the user sees.
-- Match write dimensions exactly to target range dimensions.
-- Normalize headers before relying on column indexes.
+Standing checks for any Apps Script work; each fact appears once. The rule files add depth when opened.
 
-Triggers:
-- Simple triggers have authorization restrictions.
-- Use installable triggers when authorized services are required.
-- Trigger executions can overlap.
-- Use LockService when shared state or shared sheets can be written concurrently.
-- Make duplicate processing safe when trigger re-entry is possible.
+Sheets I/O:
+- Guard empty/header-only sheets before getRange. getLastRow/getLastColumn return the last row/column with content, not sheet capacity.
+- Read a range once, transform arrays in memory, write once. Avoid per-row calls to SpreadsheetApp, DriveApp, GmailApp, UrlFetchApp, and similar services.
+- getValues returns a 2D array; use getDisplayValues when comparing what the user sees.
+- Match written array dimensions to the target range exactly; resolve/normalize headers before using column indexes.
+
+Triggers and concurrency:
+- Simple triggers have authorization restrictions; use installable triggers for services that require authorization.
+- Trigger executions can overlap. Use LockService around shared writes and keep flows idempotent so duplicate or re-entrant runs are safe.
+
+External APIs (UrlFetchApp):
+- Before trusting a response, handle transport failure, non-2xx status, HTTP 200 with a semantic error in the body, and invalid or unexpected JSON.
+- Consider retry safety and idempotency risk. Keep secrets and config out of core code.
 
 Web apps:
-- Validate doGet(e) and doPost(e) parameters before processing.
-- Do not trust client-provided values.
-- Be explicit about execute-as and access settings.
-- Updating an existing deployment version is different from creating a new deployment.
+- Validate doGet(e)/doPost(e) parameters and never trust client-provided values.
+- Be explicit about execute-as and access settings. Updating an existing deployment version differs from creating a new deployment.
 
-Quotas, jobs, and logs:
-- Quotas and limits can change; verify official docs when limits affect design.
-- Long jobs need chunking, checkpointing, or resumability.
-- Trigger errors may not be visible to end users.
-- Log actionable context without exposing secrets.
-
-## REFERENCE_LOADING_RULES
-
-Use reference files when available.
-
-references/build-patterns.md:
-- Load for BUILD or code-pattern questions.
-- Purpose: copy-paste-safe v1 Apps Script patterns.
-
-references/audit-checklist.md:
-- Load for AUDIT.
-- Purpose: GAS-specific audit checklist and issue format.
-
-references/debug-checklist.md:
-- Load for DEBUG.
-- Purpose: stepwise Apps Script failure isolation.
-
-references/playbook/CORE.md:
-- Load for SPEC, BUILD, AUDIT, or DEBUG of a Google Sheets-led tool combining Apps Script with external APIs, multi-tenant data, or stateful workflows.
-- Purpose: compact standing design/build rules with priority, confidence, and applicability gates.
-- Follow its load contract; load only the matching topic file, never the whole playbook folder by default.
-
-If the relevant reference file is unavailable:
-- Continue with the inline fallback schema.
-- Do not invent missing reference-file content.
-- State the missing reference only if it affects the answer.
-
-If a reference file conflicts with this SKILL.md:
-- Prefer this SKILL.md unless the user explicitly says otherwise.
+Config, state, quotas, jobs, and logs:
+- Use PropertiesService for config or small state, not large datasets. Use CacheService only when it clearly reduces repeated expensive work.
+- Keep core logic decoupled from UI or active-spreadsheet state unless the workflow requires it.
+- Quotas and limits can change; verify official docs when they affect design. Long jobs need chunking, checkpointing, or resumability.
+- Trigger errors may not be visible to end users. Log actionable context without exposing secrets.
 
 ## FALLBACK_OUTPUT_SCHEMAS
 
-SPEC:
-- Objective
-- Scope_In
-- Scope_Out
-- Bound_Container
-- Sheets_And_Headers
-- Data_Model
-- Properties_And_Config
-- Triggers
-- Workflows
-- Business_Rules
-- Files
-- Functions
-- Authorization_And_Scopes
-- External_APIs
-- Error_Handling
-- Phase_Plan
-- Validation
-- Risks
-- Assumptions
+Use the matching rule file for depth; if it is unavailable, at minimum cover these fields.
 
-BUILD:
-- Phase
-- Files_Impacted
-- Create_Or_Modify
-- Code
-- Insert_Where
-- Dependencies
-- Apps_Script_Services_Used
-- Required_Enablement
-- Validation_Checks
-- Basic_Tests
-- Assumptions
+SPEC: Objective · Scope_In · Scope_Out · Bound_Container · Sheets_And_Headers · Data_Model · Properties_And_Config · Triggers · Workflows · Business_Rules · Files · Functions · Authorization_And_Scopes · External_APIs · Error_Handling · Phase_Plan · Validation · Risks · Assumptions
 
-AUDIT:
-- Tag: Bug | Spec | Perf | Maintain | Test
-- Severity: P0 | P1 | P2
-- Where
-- Problem
-- Why_It_Matters
-- Atomic_Fix
-- Impact
-- Assumptions
+BUILD: Phase · Files_Impacted · Create_Or_Modify · Code · Insert_Where · Dependencies · Apps_Script_Services_Used · Required_Enablement · Validation_Checks · Basic_Tests · Assumptions
 
-DEBUG:
-- Symptom
-- Confirmed_Facts
-- Likely_Cause
-- Checks
-- Fix
-- Regression_Risk
-- Validation
-- Assumptions
+AUDIT: Tag (Bug | Spec | Perf | Maintain | Test) · Severity (P0 | P1 | P2) · Where · Problem · Why_It_Matters · Atomic_Fix · Impact · Assumptions
+
+DEBUG: Symptom · Confirmed_Facts · Likely_Cause · Checks · Fix · Regression_Risk · Validation · Assumptions
 
 ## GAS_FINAL_CHECK
 
 Before answering, verify:
-- Mode selected.
-- Output matches selected mode.
+- Mode selected; output matches the selected mode.
 - Apps Script runtime assumptions are valid.
 - No invented sheets, headers, files, functions, triggers, scopes, services, quotas, or deployment behavior.
 - Official Apps Script docs checked when behavior could affect correctness.
 - Google service calls are minimized where code is involved.
+- Machinery matches need: no lock, claim/finalize, library split, or extra files beyond what the task's scale and side effects require — prefer the lightest safe pattern.
 - Trigger, concurrency, auth, and deployment risks considered when relevant.
 - User can validate through Apps Script editor, execution logs, spreadsheet UI, web app URL, or controlled trigger.
