@@ -1,6 +1,6 @@
 # Progress.md - AI Skills
 
-Last updated: 2026-07-14
+Last updated: 2026-07-15
 
 ## Current Objective
 
@@ -8,9 +8,9 @@ System design DECIDED and published in `SKILLS-DESIGN.md` (read that first). `co
 
 ## Done (recent skills work)
 
-- 2026-07-14: Owner approved the Apps Script product path: lightly styled/status-driven bound MVP, a small versioned namespaced library for about 20-user testing, and a Sheets Editor add-on using Google's official add-on CSS as the target. Encoded thin local trigger/menu entrypoints, separate add-on testing, no checkbox-as-button pattern, no third-party UI framework by default, and CardService only when active-document context is unnecessary. Local-only pending final validation/publish.
-- 2026-07-14: Externally audited the Apps Script playbook candidate against current official Google guidance. Corrected over-broad formula/code ownership, same-workbook tenant security, cross-system atomicity, PropertiesService secret handling, logging/redaction, confirmation payloads, reconciliation, trigger identity, deployment, and scale-exit rules. Added `validation.md`, deprecated the archive in place, and hardened directly contradicted build patterns. Current audit revision is local-only pending approval/publish.
-- 2026-07-14: Created the parallel Apps Script playbook v2 candidate in `skill-appscript/references/playbook/`: compact CORE + three load-on-demand references + a quarantined `[SPEC]` workflow-engine note. Original playbook preserved. Added the CORE loading route to `skill-appscript/SKILL.md`; local validator and two fresh-agent checks passed. External-source validation and publishing remain open.
+- 2026-07-15: Rebuilt and PUBLISHED `skill-appscript` (commit `d94851e`). An audit confirmed the owner's hypothesis: documentation-heavy, too few executable rules. The v2 `playbook/` folder (CORE + 3 references + two-hop routing) is now DELETED, replaced by a flat set — `SKILL.md` (single routing table) + `data-sheets.md`, `apis-ui.md`, `build-operate.md`, `reviewing.md` (audit+debug+test merged), `build-patterns.md` — with each rule sitting next to its "how". Forward tests showed a BUILD agent shipping code that contradicted the very rule it cited (held a lock across UrlFetch), because the rule existed only as prose; so claim/call/finalize, checkpoint/resume, schema constants and log redaction became copy-paste recipes with embedded `selfCheck_*`. New offline harness `references/tools/gas_mock_run.js` executes every recipe against fake Google services (11/11 checks pass) — recipes are now proven, not just reviewed. Legacy docs (incl. `validation.md`) quarantined in `references/archive/`. Manifest propagated to `.claude\skills` + `.codex\skills`; `.skill` upload to claude.ai remains manual.
+- 2026-07-14: Owner approved the Apps Script product path: lightly styled/status-driven bound MVP, a small versioned namespaced library for about 20-user testing, and a Sheets Editor add-on using Google's official add-on CSS as the target. Encoded thin local trigger/menu entrypoints, separate add-on testing, no checkbox-as-button pattern, no third-party UI framework by default, and CardService only when active-document context is unnecessary. Published 2026-07-15 in `d94851e`.
+- 2026-07-14: Externally audited the Apps Script playbook against current official Google guidance (10/10 platform claims confirmed, none overstated). Corrected over-broad formula/code ownership, same-workbook tenant security, cross-system atomicity, PropertiesService secret handling, logging/redaction, confirmation payloads, reconciliation, trigger identity, deployment, and scale-exit rules. Those corrections carry into the rebuilt rule tables; the source evidence log is archived at `references/archive/validation.md`.
 - 2026-07-09: `doc-hygiene` passed its first live test (on this project's docs), then all 6 test-feedback improvements encoded into its SKILL.md (incl. whole-file removal candidates: report-only → `_to_delete_<DATE>\` on user OK). Its skill_plan.md deleted (done; recoverable in git). Design plan step 5 gained the fresh-helper-canonical clause.
 - 2026-07-09: `SKILLS-DESIGN.md` rewritten as the system backbone (5 skill types, birth rules, DEFINE→MAKE→ROAST→FORMALIZE, gaps+plan). Delegate-then-audit: writer → fresh auditor → fix. Commit `18e7261`.
 - 2026-07-09: `code-audit-loop` Models & effort rules encoded (rank-based; auditor ≥ coder). Published: commit `8c28d09`, manifest rebuilt, mirrored to `.claude\skills` + `.codex\skills`.
@@ -23,18 +23,18 @@ System design DECIDED and published in `SKILLS-DESIGN.md` (read that first). `co
 
 ## In Progress
 
-- Apps Script playbook external-input merge is approved, validated, and ready to publish.
+- None open on the skills workbench beyond the Current Objective.
 
 ## Next Action
 
-1. Publish the approved Apps Script playbook revision when the user gives the publish go.
-2. Separately, await user go for the `code-audit-loop` live test on GO_VIRAL D-1b (`skill-code-audit-loop/skill_plan.md` item 3).
+1. Await user go for the `code-audit-loop` live test on GO_VIRAL D-1b (`skill-code-audit-loop/skill_plan.md` item 3).
+2. Open thread on `skill-appscript`: decide what else to make deterministic. The rebuild made the recipes executable, but the rule tables (A/P/S/D/T/C/U/E/V) still carry only an "applies when" gate + DO/DO NOT with no attached executable check; SPEC mode has no template or worked example; and the fallback output schemas permit superficial compliance (only AUDIT forces proof via `evidence_gate`).
 
 ## Last Verification
 
-- Date: 2026-07-14
-- Method: official-source audit, full read of both external inputs, independent fresh-agent check, `Validate-Skill.ps1`, focused duplicate scans, `git diff --check`, and Git status/publication check.
-- Result: pass; the merge checker found three atomic issues, all fixed, and a second fresh checker passed the approved add-on/library architecture with no findings.
+- Date: 2026-07-15
+- Method: `skill-appscript` rebuild — four fresh-agent forward tests (SPEC/BUILD/AUDIT/DEBUG), external platform check of 10 claims against official Google docs, `node references/tools/gas_mock_run.js` (executes every recipe against fake Google services), rule-ID completeness grep, dangling-reference scan, independent completeness critic, and Git status/publication check.
+- Result: pass. Harness 11/11; all 42 rule IDs present exactly once; no dangling refs. The critic caught a P-03 duplication (data-sheets + build-operate) and a stale `CORE.md` pointer — both fixed before publish.
 
 ## Known Risks
 
