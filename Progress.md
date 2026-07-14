@@ -8,6 +8,7 @@ System design DECIDED and published in `SKILLS-DESIGN.md` (read that first). `co
 
 ## Done (recent skills work)
 
+- 2026-07-14: Externally audited the Apps Script playbook candidate against current official Google guidance. Corrected over-broad formula/code ownership, same-workbook tenant security, cross-system atomicity, PropertiesService secret handling, logging/redaction, confirmation payloads, reconciliation, trigger identity, deployment, and scale-exit rules. Added `validation.md`, deprecated the archive in place, and hardened directly contradicted build patterns. Current audit revision is local-only pending approval/publish.
 - 2026-07-14: Created the parallel Apps Script playbook v2 candidate in `skill-appscript/references/playbook/`: compact CORE + three load-on-demand references + a quarantined `[SPEC]` workflow-engine note. Original playbook preserved. Added the CORE loading route to `skill-appscript/SKILL.md`; local validator and two fresh-agent checks passed. External-source validation and publishing remain open.
 - 2026-07-09: `doc-hygiene` passed its first live test (on this project's docs), then all 6 test-feedback improvements encoded into its SKILL.md (incl. whole-file removal candidates: report-only → `_to_delete_<DATE>\` on user OK). Its skill_plan.md deleted (done; recoverable in git). Design plan step 5 gained the fresh-helper-canonical clause.
 - 2026-07-09: `SKILLS-DESIGN.md` rewritten as the system backbone (5 skill types, birth rules, DEFINE→MAKE→ROAST→FORMALIZE, gaps+plan). Delegate-then-audit: writer → fresh auditor → fix. Commit `18e7261`.
@@ -29,9 +30,9 @@ Await user go for the `code-audit-loop` live test on GO_VIRAL D-1b (`skill-code-
 
 ## Last Verification
 
-- Date: 2026-07-06
-- Method: `skill-ideasup-flow/scripts/status.py` on empty + partial pipelines (correct NEXT / MISSING-SOURCE detection). Subagent smoke test of the published skill: correct reference selected, stopped at first validation point. One defect (ownership table drift) fixed.
-- Result: pass
+- Date: 2026-07-14
+- Method: official-source audit, independent fresh-agent check, `Validate-Skill.ps1`, focused reference scans, `git diff --check`, and Git status/publication check.
+- Result: pass; fresh checker found six atomic issues, all were fixed, and the recheck passed.
 
 ## Known Risks
 
