@@ -11,7 +11,9 @@ The browser is a display and selection surface, not a source of authority.
 - Recompute actionable IDs from durable state.
 - Validate every submitted field against the server-owned contract.
 - Render operator, AI, and API text through `textContent`/DOM nodes.
+- Prefer contextually escaped `<?= ... ?>` template output; use force-printing only for trusted static markup.
 - Return sanitized messages; log secret-free technical context separately.
+- Minimize repeated short `google.script.run` calls; batch UI reads when it stays simple.
 
 Use one generic form renderer only when several forms genuinely share a field-spec shape. A single simple dialog does not earn a framework.
 
@@ -21,11 +23,13 @@ Confirmation flow:
 
 1. Server computes the eligible set and count.
 2. UI displays the count and plain-language consequence.
-3. Client returns only the action and stable tenant/entity selector.
-4. Server re-derives and re-validates the set.
-5. Server executes under the required lock/idempotency controls.
+3. Client returns only the stable selectors needed to express the user's choice.
+4. Server re-authorizes, re-derives, and re-validates the set.
+5. If the final scope materially differs, show a new confirmation; otherwise execute under the required lock/idempotency controls.
 
-Do not carry free text or a row-ID list through the confirmation payload when the server can derive it.
+Client selectors are intent, never authority. A selected stable-ID list is valid when row selection is the feature; the server must still verify every ID and reject additions/substitutions.
+
+For a web app, decide and test deployment access plus execute-as identity. Do not assume `Session.getActiveUser().getEmail()` is available, especially when the app executes as the developer.
 
 ## RESULT UX
 
@@ -79,7 +83,7 @@ For AI output:
 | Non-idempotent write rejected before send | Retry only when the failure proves nothing was accepted. |
 | Write with ambiguous outcome | Do not retry; mark `needs_reconcile`. |
 
-Reconciliation performs a provider read using stable request/tenant/content identifiers and accepts success only when exactly one match exists.
+Reconciliation may perform a provider read only when stable identifiers and an unambiguous lookup exist. Otherwise route the item to manual resolution; a guessed retry is unsafe.
 
 Each adapter must declare its retryable failures, maximum attempts, delay policy, and whether reliable reconciliation exists. There is no universal retry cap that is correct for every provider.
 
@@ -89,7 +93,7 @@ Mint the request ID before the external call and record it in the row, structure
 
 Use:
 
-`snapshot current -> validate candidate cheaply -> write -> re-read/validate -> rollback on failure`
+`keep current -> validate candidate safely -> swap once under the right lock -> retain recovery reference`
 
 - Never echo the current or candidate value.
 - UI may reveal only whether a key exists.

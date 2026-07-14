@@ -9,10 +9,11 @@ Load with `CORE.md` only when the task touches these concerns. CORE owns the rul
 - Use safe defaults: visible unless hidden; read-only unless explicitly editable; displayed label falls back to key.
 - Keep code-owned vocabularies separate from editorial lists. Validate any sheet-based executable config before use.
 - Translate stored labels and logic codes only at Sheet I/O seams.
+- Keep IDs, workflow state, and side-effect decisions code-written. A formula consumed by code needs explicit freshness/error checks; `SpreadsheetApp.flush()` applies pending writes but is not a substitute for a tested calculation contract.
 
 ## HEADER AND COLUMN POLICY
 
-Build a live `key -> index` map from the canonical header row for each operation.
+Build a live `key -> index` map for each operation. By default, use stable protected machine headers and put friendly wording in notes/UI. If headers must be renamed or translated, add a separately validated key row or metadata layer; do not guess keys from labels.
 
 Header repair decision:
 
@@ -35,9 +36,9 @@ Use one ordered manifest and one rerunnable build path:
 - Create or repair; do not reset.
 - Seed only when the target contains no data rows.
 - Apply formatting/validation by header key, not column letter.
-- Re-show fields whose schema changed from hidden to visible.
-- Preserve operator conditional formatting and columns.
-- Install triggers idempotently by handler name.
+- Change visibility/protection only for ranges the tool explicitly owns; do not undo an operator choice on every bootstrap.
+- Avoid destructive resets so operator columns, formulas, and conditional formatting survive.
+- Install only tool-owned triggers. Track the created trigger ID/topology; handler name alone is not a unique trigger definition, and one account cannot see another account's triggers.
 
 Backfill choice:
 
@@ -66,12 +67,14 @@ For a multi-tenant workbook:
 4. Verify tenant ownership, status, platform, capability, and operator enablement.
 5. Mint the request ID only after validation passes.
 
+This is logical isolation inside the application, not data confidentiality. Anyone who can open or copy the workbook may see protected/hidden content. Use separate workbooks or an access-controlled backend when tenants must not see one another's data.
+
 Client UI may select a tenant; it never defines the eligible row set.
 
 For batch state changes:
 
 - Preflight IDs, tenant, gates, and legal transitions without writes.
-- Apply only after batch-fatal checks pass.
+- Apply only after batch-fatal checks pass, but do not claim cross-system atomicity: define compensation or recovery for partial Sheet/provider failure.
 - Declare whether a bad row aborts the batch or is logged and skipped.
 - Never hard-delete history by default; deactivate when retention matters.
 
@@ -83,11 +86,11 @@ For batch state changes:
 | Founder-curated presentation lists | Validated sheet config |
 | Global non-secret settings | Global config sheet or properties |
 | Per-tenant settings | One row per tenant |
-| Secret values | Appropriate PropertiesService scope |
+| Low-risk secret values in a trusted-editor tool | Appropriate PropertiesService scope |
 | Recomputable expensive reads | CacheService |
 | Operational/audit history | Sheet or durable store |
 
-Property scope depends on deployment topology. Script Properties are acceptable for a container-bound tool owned as one security domain. Reassess before sharing one library/deployment across workbooks or operators.
+Property scope depends on deployment topology. Script Properties are shared by every user of the script and PropertiesService is not a dedicated secret vault. It can be pragmatic for a small tool with trusted editors; use a dedicated secret manager when access must be independently controlled, audited, or rotated.
 
 Cache only non-secret, recomputable data. Cache is never durable truth.
 
@@ -97,6 +100,7 @@ Cache only non-secret, recomputable data. Cache is never durable truth.
 - Design repeated and overlapping executions to produce the same final state.
 - Write processed/checkpoint state at a point that cannot hide an ambiguous external side effect.
 - Scan existing triggers before installation.
+- Record who creates installable triggers: they run as that creator, programmatic edits normally do not fire them, and triggers created by another account are not visible to the current account.
 - If a missing authorization scope prevents optional trigger installation, report the gap without corrupting workbook setup.
 
 For a slow external side effect, default to:
@@ -110,8 +114,12 @@ The in-progress state must be ineligible to sibling runs. If the provider contra
 
 ## LOGS AND USAGE
 
-Use one structured event shape containing time, tenant, object, action, before/after state, request ID, external reference, result, error code, and redacted details.
+Use one allowlisted structured event shape containing only needed fields such as time, tenant, object, action, state, request ID, external reference, result, and safe error code.
 
-- Redact recursively at the log seam using secret-like key names.
+- At the log seam, remove credential-bearing fields/URLs and known secret values; key-name redaction alone is not sufficient.
 - Keep diagnostic logs bounded only when no durable business rule depends on discarded rows.
 - Do not enforce quotas or billing from a rolling log. Maintain a durable counter/ledger with sufficient retention.
+
+## SCALE EXIT
+
+Define a move-off-Sheets signal before growth: approaching workbook/cell limits, sustained concurrent writers, high-frequency ingestion, or repeated timeouts after batching/chunking. Move the transactional/high-volume data, not necessarily the operator-facing Sheet.

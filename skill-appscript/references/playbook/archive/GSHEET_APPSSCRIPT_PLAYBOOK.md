@@ -1,5 +1,7 @@
 # GSheet_AppsScript — Google Sheets-Led AI Tools: DO / DO NOT Playbook
 
+> **ARCHIVED SOURCE — do not load as standing guidance.** It preserves project evidence, including over-broad reuse claims and an unfinished workflow-engine specification. Use `../CORE.md` and its topic references for the audited candidate. This archive is not externally validated and must not be edited into a second active playbook.
+
 > **Skill reference.** Concrete, grounded practices for building **Google Sheets + Apps Script + external-API** tools for a **non-technical founder**. Every rule is mined from real code / real workbooks, not generic advice. Assembled from three reference implementations at three maturity rungs:
 > - **GoViral** — shipped **v1** coded single-tool (code writes every cell, one frozen `SCHEMA`, strict tenancy, one provider in code).
 > - **AIssistant** — **v2** generic data-driven AI **workflow builder/runner** engine (`Config-workflow` sheet + `utility.gs`/builder/processor).

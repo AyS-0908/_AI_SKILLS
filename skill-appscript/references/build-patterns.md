@@ -12,9 +12,9 @@ pattern_index:
   SHEETS_TABLE_ADAPTER: "Header-based table read/write with empty-sheet guard."
   PROPERTIES_STATE: "Small config/state values stored as strings or JSON."
   SCRIPT_LOCK_WRAPPER: "Protect shared sheet/state writes."
-  URLFETCH_JSON: "External JSON call with HTTP/body validation."
-  WEBAPP_JSON_ENTRYPOINT: "doPost JSON boundary with safe response payload."
-  INSTALLABLE_TRIGGER_SETUP: "Idempotent trigger installer/remover."
+  URLFETCH_JSON: "External JSON call with sanitized transport/HTTP/body validation."
+  WEBAPP_JSON_ENTRYPOINT: "Authorized doPost JSON boundary with safe response payload."
+  INSTALLABLE_TRIGGER_SETUP: "Current-user-idempotent trigger installer/remover."
 
 ---
 
@@ -68,6 +68,9 @@ function buildHeaderMap_(headerRow) {
     const key = normalizeHeader_(header);
 
     if (key) {
+      if (key in map) {
+        throw new Error('Duplicate header: ' + header);
+      }
       map[key] = index;
     }
 
@@ -92,11 +95,7 @@ function readTable_(sheetName, requiredHeaders) {
   const lastColumn = sheet.getLastColumn();
 
   if (lastRow < 1 || lastColumn < 1) {
-    return {
-      sheet: sheet,
-      headerMap: {},
-      rows: [],
-    };
+    throw new Error(sheetName + ' has no header row. Run bootstrap first.');
   }
 
   const values = sheet.getRange(1, 1, lastRow, lastColumn).getValues();
@@ -136,6 +135,7 @@ function writeRows_(sheet, startRow, startColumn, rows) {
 when:
   - "Small durable config/state is needed."
   - "State must survive executions."
+  - "Do not use this as a secret vault; Script Properties are shared by all users of the script."
 
 copy_pattern:
 ```javascript
@@ -192,7 +192,8 @@ function withScriptLock_(label, callback) {
 
 function runLockedJob_() {
   return withScriptLock_('runLockedJob_', function () {
-    // Shared sheet/property writes go here.
+    // Keep only the shared read/check/write critical section here.
+    // Do not hold this lock across UrlFetchApp or other slow services.
   });
 }
 ```
@@ -206,27 +207,45 @@ when:
 
 copy_pattern:
 ```javascript
-function fetchJson_(url, options, context) {
-  const response = UrlFetchApp.fetch(url, Object.assign({}, options || {}, {
-    muteHttpExceptions: true,
-  }));
+function fetchJson_(url, options, context, validateResponse) {
+  let response;
+
+  try {
+    response = UrlFetchApp.fetch(url, Object.assign({}, options || {}, {
+      muteHttpExceptions: true,
+    }));
+  } catch (error) {
+    throw new Error(context + ' transport failed.');
+  }
 
   const status = response.getResponseCode();
   const body = response.getContentText();
   let parsed;
 
+  if (status < 200 || status >= 300) {
+    throw new Error(context + ' failed. HTTP ' + status + '.');
+  }
+
   try {
     parsed = body ? JSON.parse(body) : null;
   } catch (error) {
-    throw new Error(context + ' returned invalid JSON. HTTP ' + status + '. Body: ' + body.slice(0, 500));
-  }
-
-  if (status < 200 || status >= 300) {
-    throw new Error(context + ' failed. HTTP ' + status + '. Body: ' + body.slice(0, 500));
+    throw new Error(context + ' returned invalid JSON. HTTP ' + status + '.');
   }
 
   if (parsed && parsed.error) {
-    throw new Error(context + ' semantic error: ' + JSON.stringify(parsed.error).slice(0, 500));
+    throw new Error(context + ' returned a semantic error.');
+  }
+
+  if (typeof validateResponse !== 'function') {
+    throw new Error(context + ' requires a provider response validator.');
+  }
+
+  try {
+    if (validateResponse(parsed) !== true) {
+      throw new Error('invalid');
+    }
+  } catch (error) {
+    throw new Error(context + ' response failed validation.');
   }
 
   return parsed;
@@ -240,12 +259,19 @@ function fetchJson_(url, options, context) {
 when:
   - "doPost receives JSON and returns JSON."
   - "Client must receive a structured success/error payload."
+  - "Deployment access and execute-as identity are explicitly decided."
 
 copy_pattern:
 ```javascript
 function doPost(e) {
   try {
     const input = parseJsonPostBody_(e);
+
+    if (!input || typeof input !== 'object' || Array.isArray(input)) {
+      throw new Error('Expected JSON object input.');
+    }
+
+    assertAuthorizedPost_(e, input);
     const result = handlePost_(input);
 
     return jsonOutput_({
@@ -253,11 +279,14 @@ function doPost(e) {
       data: result,
     });
   } catch (error) {
-    console.error(error.stack || error);
+    console.error(JSON.stringify({
+      event: 'webapp_error',
+      name: error && error.name ? error.name : 'Error',
+    }));
 
     return jsonOutput_({
       ok: false,
-      error: error.message,
+      error: 'Request failed.',
     });
   }
 }
@@ -274,6 +303,12 @@ function parseJsonPostBody_(e) {
   }
 }
 
+function assertAuthorizedPost_(e, input) {
+  // Replace with the project's real server-side authorization rule.
+  // Safe default: this copy-paste skeleton does not accept public requests.
+  throw new Error('POST authorization is not configured.');
+}
+
 function jsonOutput_(payload) {
   return ContentService
     .createTextOutput(JSON.stringify(payload))
@@ -281,10 +316,6 @@ function jsonOutput_(payload) {
 }
 
 function handlePost_(input) {
-  if (!input || typeof input !== 'object') {
-    throw new Error('Expected JSON object input.');
-  }
-
   return {
     received: true,
   };
@@ -297,25 +328,38 @@ function handlePost_(input) {
 
 when:
   - "A predictable installer is needed for time-based or installable handlers."
+  - "One designated account owns trigger installation; other accounts can create invisible duplicates."
 
 copy_pattern:
 ```javascript
 function installDailyTrigger_() {
   const handler = 'runDailyJob';
-
-  const alreadyInstalled = ScriptApp.getProjectTriggers().some(function (trigger) {
+  const specKey = 'TRIGGER_SPEC_RUN_DAILY_JOB';
+  const desiredSpec = 'clock:daily:06:v1';
+  const props = PropertiesService.getScriptProperties();
+  const matches = ScriptApp.getProjectTriggers().filter(function (trigger) {
     return trigger.getHandlerFunction() === handler;
   });
 
-  if (alreadyInstalled) {
+  if (
+    props.getProperty(specKey) === desiredSpec &&
+    matches.length === 1 &&
+    matches[0].getEventType() === ScriptApp.EventType.CLOCK
+  ) {
     return;
   }
+
+  matches.forEach(function (trigger) {
+    ScriptApp.deleteTrigger(trigger);
+  });
 
   ScriptApp.newTrigger(handler)
     .timeBased()
     .everyDays(1)
     .atHour(6)
     .create();
+
+  props.setProperty(specKey, desiredSpec);
 }
 
 function removeTriggersForHandler_(handler) {
@@ -327,8 +371,7 @@ function removeTriggersForHandler_(handler) {
 }
 
 function runDailyJob() {
-  return withScriptLock_('runDailyJob', function () {
-    // Scheduled work goes here.
-  });
+  // Claim shared work under a short lock, call slow services outside it,
+  // then finalize under a short lock. Do not lock the whole job by default.
 }
 ```

@@ -3,6 +3,7 @@
 > **Confidence: `SPEC` — design-only / unfinished.**
 >
 > Do not load by default. Do not present this architecture, its named files, or its APIs as reusable assets. The original playbook says the AIssistant section came from a specification rather than line-by-line verified shipped code.
+> Official platform validation cannot promote a design-only architecture. Only a runnable implementation and real usage can change this confidence.
 
 ## ADMISSION GATE
 
@@ -49,5 +50,4 @@ Before coding:
 3. Add per-item confidence tags based on runnable checks.
 4. Prototype one workflow end to end.
 5. Verify invalid config causes zero structural writes.
-6. Only then promote specific patterns or assets from `SPEC` to `PROVEN`.
-
+6. Only then promote specific patterns or assets from `SPEC` to `PROJECT_REPORTED` or another evidence-backed tag.

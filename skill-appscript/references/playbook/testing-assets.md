@@ -18,24 +18,24 @@ Existing `references/build-patterns.md` already owns copy-paste-safe baseline co
 ## DEPLOYMENT
 
 - Keep canonical source in version control and deploy from it.
-- Keep module cross-references inside functions when load-time ordering would be fragile.
+- Avoid top-level initialization that depends on another file's evaluation order; initialize lazily inside functions when needed.
 - Add authorization scopes only for shipped behavior.
-- Validate the actual trigger, menu, web app, or deployed version the operator uses.
+- Use versioned deployments for public surfaces; validate the actual trigger creator, execute-as setting, menu, web app URL, and deployed version the operator uses.
 - Treat a missing optional scope as a visible setup gap, not permission to leave a half-built workbook.
 
 ## CANDIDATE ASSET CATALOG
 
-These assets were called reusable by the source playbook, but this rewrite did not inspect or execute their current source. **Verify existence, compatibility, and tests before copying.**
+These names are leads from the source playbook, not a reusable library. **Do not copy until the real source exists, its license/ownership is clear, and its behavior passes current checks.**
 
 | Candidate | Intended value | Default action |
 |---|---|---|
-| `00_Constants.gs` schema pattern | One schema source and derived maps | Copy the pattern, rewrite contents. |
+| `00_Constants.gs` schema pattern | One schema source and derived maps | Recreate the small pattern; do not assume the named file transfers. |
 | `SheetIO.gs` | Header-name I/O, IDs, tenant filtering | Prefer existing `references/build-patterns.md`; inspect source before any larger lift. |
 | `Bootstrap.gs` | Rerunnable workbook construction | Lift only after rerun and data-preservation checks. |
 | `Config.gs` | Global/tenant config and secret-name resolution | Adapt property scope to deployment. |
 | `Log.gs` | Structured/redacted audit events | Do not inherit a fixed retention cap blindly. |
 | `ux_form.html` / `ux_confirm.html` | Repeated form and confirmation surfaces | Use only when the project has enough repeated UI to justify them. |
-| `ux_style.html` | Shared dialog styles | Optional UI asset, not architecture. |
+| `ux_style.html` | Shared dialog styles | Skip until repeated dialogs justify a shared asset. |
 | `tools/gas_mock_run.js` | Offline execution of real `.gs` files | Verify mocks and file load behavior. |
 | Provider adapter files | Boundary-specific HTTP mapping | Copy only the relevant provider, not a generic layer. |
 
@@ -61,4 +61,3 @@ Keep only the decision; consult the original playbook for project history.
 - The AyS utility-library catalog is separate inventory, not standing build guidance.
 - Provider-specific social-media, SIREN, n8n, and media-host details are project/domain references.
 - Exact visual tokens, emoji menu structure, and modal close timing are product decisions.
-
