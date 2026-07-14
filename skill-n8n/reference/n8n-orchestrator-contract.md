@@ -2,8 +2,8 @@
 
 > **Single source of truth — do NOT duplicate the full contract here.**
 > This file is a pointer + cheat-sheet. The authoritative contract lives in the orchestrator project:
-> - **Caller / AI-skill contract:** `C:\Users\aymar\AYS_CODING\code-N8N_ORCHESTRATOR\n8n_orchestrator_introduction.txt`
-> - **Full behavior spec:** `C:\Users\aymar\AYS_CODING\code-N8N_ORCHESTRATOR\n8n_orchestrator_specification_v_1_2.txt`
+> - **Caller / user guide:** `C:\Users\aymar\AYS_CODING\code-N8N_ORCHESTRATOR\orchestrator_user_guide.md`
+> - **Full behavior spec (live contract):** `C:\Users\aymar\AYS_CODING\code-N8N_ORCHESTRATOR\orchestrator_spec_v1.md`
 > - **Scope rules (V1 denylist, connectors):** `C:\Users\aymar\AYS_CODING\code-N8N_ORCHESTRATOR\AGENTS.md`
 >
 > Read the source file before any design or audit touching `search | publish | create | message`.
@@ -28,6 +28,19 @@
 **Three response envelopes only:** `success` (`ok:true`) · `rejected_failure` (`ok:false` + `error.{code,message,retryable}`) · `pending_validation` (`ok:false` + `planned_action` + `approval_required`).
 
 **Invariants:** fail closed on unknown project/route/service/operation · authenticate every request · credentials stay platform-side · single service per request · references not raw files · no raw payload storage · AI side effects pass validation + approval.
+
+---
+
+## Round-trips / inbound events (the recurring "async" question)
+
+The gateway is **synchronous by design**. Two needs look like "async" but neither justifies an async gateway:
+- **Long job the caller awaits** → connector starts it (fire-and-forget child), returns a ref, caller polls a `<domain>_status` op. Proven: `video_generation` → `video_job_status`.
+- **Inbound event** (a human's Telegram/WhatsApp reply) → a SEPARATE trigger workflow receives it; it is not a subflow the master calls.
+
+Send-a-message-get-the-answer-back pattern:
+- **Default (decoupled poll — use when you can't know when the human replies):** `<channel>_send` fires the message; a standalone `<channel>_INBOUND` trigger workflow writes replies to a domain-owned state table (same category as `video_jobs`, NOT a 4th core table); caller reads via a new `search` op `message_poll`. A fast reply is just found on the first poll, so this covers quick and slow replies alike.
+- **Single paused run only:** native "Send and Wait for Response" inside that TRIGGERED workflow. Never inside a called subflow (breaks return to parent). Never hold the master HTTP request open for a human (150s timeout).
+- **Do NOT rebuild the gateway async for this** — the inbound event still needs a trigger + state, so async wouldn't solve it. Async jobs/callbacks are V2, justified by multi-tenant demand only. Source: orchestrator `AGENTS.md` §ASYNC_ROUNDTRIPS + `orchestrator_future_versions.md` §G.
 
 ---
 

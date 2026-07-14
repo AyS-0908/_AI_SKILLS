@@ -12,6 +12,7 @@ status: active
 ## Gotchas — read before any mode
 
 - **Wait / Human-in-the-Loop nodes must live in the main workflow**, never inside a called sub-workflow. Sub-workflows with wait nodes do not return data to the parent.
+- **Orchestrator round-trips (send a message → get a human's reply back) do NOT need an async gateway.** Recurring question; the answer is always the same: gateway stays synchronous. Outbound = a `message` send branch. Inbound reply = a SEPARATE trigger workflow + a domain-owned state table + a `message_poll`-style `search` op (the video `start → poll` pattern). Native "Send and Wait for Response" only inside a standalone triggered workflow, never a called subflow. Never rebuild the gateway async to solve this — the inbound event still needs a trigger + state. Detail in `[n8n orchestrator]` contract §"Round-trips / inbound events".
 - **LLM JSON output is a string until parsed.** Always wrap `JSON.parse()` in `try / catch`.
 - **n8n MCP can return `200 OK` with `success:false` (or `error`) in the body.** Check the response body, not the status code, before treating a call as valid.
 - **Mode-specific gotchas:** see Build mode "Known gotchas" in [n8n-build.md](n8n-build.md).

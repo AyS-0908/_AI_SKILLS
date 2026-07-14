@@ -8,6 +8,7 @@ System design DECIDED and published in `SKILLS-DESIGN.md` (read that first). `co
 
 ## Done (recent skills work)
 
+- 2026-07-14: Owner approved the Apps Script product path: lightly styled/status-driven bound MVP, a small versioned namespaced library for about 20-user testing, and a Sheets Editor add-on using Google's official add-on CSS as the target. Encoded thin local trigger/menu entrypoints, separate add-on testing, no checkbox-as-button pattern, no third-party UI framework by default, and CardService only when active-document context is unnecessary. Local-only pending final validation/publish.
 - 2026-07-14: Externally audited the Apps Script playbook candidate against current official Google guidance. Corrected over-broad formula/code ownership, same-workbook tenant security, cross-system atomicity, PropertiesService secret handling, logging/redaction, confirmation payloads, reconciliation, trigger identity, deployment, and scale-exit rules. Added `validation.md`, deprecated the archive in place, and hardened directly contradicted build patterns. Current audit revision is local-only pending approval/publish.
 - 2026-07-14: Created the parallel Apps Script playbook v2 candidate in `skill-appscript/references/playbook/`: compact CORE + three load-on-demand references + a quarantined `[SPEC]` workflow-engine note. Original playbook preserved. Added the CORE loading route to `skill-appscript/SKILL.md`; local validator and two fresh-agent checks passed. External-source validation and publishing remain open.
 - 2026-07-09: `doc-hygiene` passed its first live test (on this project's docs), then all 6 test-feedback improvements encoded into its SKILL.md (incl. whole-file removal candidates: report-only → `_to_delete_<DATE>\` on user OK). Its skill_plan.md deleted (done; recoverable in git). Design plan step 5 gained the fresh-helper-canonical clause.
@@ -22,17 +23,18 @@ System design DECIDED and published in `SKILLS-DESIGN.md` (read that first). `co
 
 ## In Progress
 
-- None open on the skills workbench beyond the Current Objective.
+- Apps Script playbook external-input merge is approved, validated, and ready to publish.
 
 ## Next Action
 
-Await user go for the `code-audit-loop` live test on GO_VIRAL D-1b (`skill-code-audit-loop/skill_plan.md` item 3).
+1. Publish the approved Apps Script playbook revision when the user gives the publish go.
+2. Separately, await user go for the `code-audit-loop` live test on GO_VIRAL D-1b (`skill-code-audit-loop/skill_plan.md` item 3).
 
 ## Last Verification
 
 - Date: 2026-07-14
-- Method: official-source audit, independent fresh-agent check, `Validate-Skill.ps1`, focused reference scans, `git diff --check`, and Git status/publication check.
-- Result: pass; fresh checker found six atomic issues, all were fixed, and the recheck passed.
+- Method: official-source audit, full read of both external inputs, independent fresh-agent check, `Validate-Skill.ps1`, focused duplicate scans, `git diff --check`, and Git status/publication check.
+- Result: pass; the merge checker found three atomic issues, all fixed, and a second fresh checker passed the approved add-on/library architecture with no findings.
 
 ## Known Risks
 
