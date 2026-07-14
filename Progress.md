@@ -1,6 +1,6 @@
 # Progress.md - AI Skills
 
-Last updated: 2026-07-09
+Last updated: 2026-07-14
 
 ## Current Objective
 
@@ -8,6 +8,7 @@ System design DECIDED and published in `SKILLS-DESIGN.md` (read that first). `co
 
 ## Done (recent skills work)
 
+- 2026-07-14: Created the parallel Apps Script playbook v2 candidate in `skill-appscript/references/playbook/`: compact CORE + three load-on-demand references + a quarantined `[SPEC]` workflow-engine note. Original playbook preserved. Added the CORE loading route to `skill-appscript/SKILL.md`; local validator and two fresh-agent checks passed. External-source validation and publishing remain open.
 - 2026-07-09: `doc-hygiene` passed its first live test (on this project's docs), then all 6 test-feedback improvements encoded into its SKILL.md (incl. whole-file removal candidates: report-only → `_to_delete_<DATE>\` on user OK). Its skill_plan.md deleted (done; recoverable in git). Design plan step 5 gained the fresh-helper-canonical clause.
 - 2026-07-09: `SKILLS-DESIGN.md` rewritten as the system backbone (5 skill types, birth rules, DEFINE→MAKE→ROAST→FORMALIZE, gaps+plan). Delegate-then-audit: writer → fresh auditor → fix. Commit `18e7261`.
 - 2026-07-09: `code-audit-loop` Models & effort rules encoded (rank-based; auditor ≥ coder). Published: commit `8c28d09`, manifest rebuilt, mirrored to `.claude\skills` + `.codex\skills`.

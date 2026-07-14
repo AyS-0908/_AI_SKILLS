@@ -154,6 +154,11 @@ references/debug-checklist.md:
 - Load for DEBUG.
 - Purpose: stepwise Apps Script failure isolation.
 
+references/playbook/CORE.md:
+- Load for SPEC, BUILD, or AUDIT of a Google Sheets-led tool combining Apps Script with external APIs, multi-tenant data, or stateful workflows.
+- Purpose: compact standing design/build rules with priority, confidence, and applicability gates.
+- Follow its load contract; load only the matching topic file, never the whole playbook folder by default.
+
 If the relevant reference file is unavailable:
 - Continue with the inline fallback schema.
 - Do not invent missing reference-file content.
