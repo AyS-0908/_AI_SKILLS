@@ -53,22 +53,25 @@ Then state the full spec: what to produce, the constraints, what "done" means, a
 
 ## Step 2 — Directives
 
-Match the task against the triggers. Embed the matching text verbatim into the prompt. Skip the rest.
+**Outcome-first goes in every prompt.** Beyond it, add only the rows whose IF fires — one to three more, four at the outside. When unsure, fewer.
 
-**You do the matching — never Fable 5.** The table stays here; only the selected directive text goes into the prompt. Pasting the table, or telling Fable 5 to pick for itself, puts all thirteen directives in its context and re-creates the over-instruction failure above.
+**You do the matching — never Fable 5.** The table stays here; only the selected directive text goes into the prompt. Pasting the table, or telling Fable 5 to pick for itself, puts every directive in its context and re-creates the over-instruction failure above — selecting after the fact does not undo it. It also makes the prompt unauditable: the user can read and edit directives they can see, not ones chosen at runtime.
 
-| IF the task… | THEN add |
+Each IF is a yes/no question about the task. Answer it; don't interpret it.
+
+| IF… | THEN add |
 |---|---|
-| is ambiguous or under-specified | **Act-once** |
-| is one you'd run at high or xhigh effort | **No-overbuild** |
-| ends in something the user reads | **Outcome-first** |
-| runs unattended (overnight, nobody watching) | **Autonomous** + **Context** |
-| involves reporting progress or status | **Evidence** |
-| is a question, diagnosis, or think-aloud — not a change request | **Assess-only** |
-| has independent subtasks and the harness has subagents | **Delegate** |
-| spans sessions and a notes location exists | **Memory** |
-| is long agentic work whose summary the user reads cold | **Re-ground** (use instead of Outcome-first, not alongside) |
-| has real checkpoints needing a human decision | **Checkpoint** |
+| *(always)* | **Outcome-first** — unless Re-ground replaces it |
+| the task writes or changes code, and you recommended `high` or `xhigh` | **No-overbuild** |
+| the output asserts facts — a report, audit, review, research, or status | **Evidence** |
+| the task leaves real choices open and you're happy for Fable 5 to make them | **Act-once** |
+| Fable 5 must change nothing — analysis only | **Assess-only** |
+| it runs unattended and nobody can answer mid-task | **Autonomous** |
+| the session shows a remaining-token or context countdown | **Context** |
+| it has independent subtasks and the session has subagents | **Delegate** |
+| a notes or memory location exists and the work spans sessions | **Memory** |
+| it is long agentic work whose closing summary the user reads cold | **Re-ground** — replaces Outcome-first, never alongside |
+| it needs a human decision at a real checkpoint | **Checkpoint** |
 
 **Act-once** — When you have enough information to act, act. Do not re-derive facts already established, re-open settled decisions, or narrate options you won't pursue. When weighing a choice, give one recommendation, not a survey. This does not apply to your thinking.
 
@@ -80,9 +83,9 @@ Match the task against the triggers. Embed the matching text verbatim into the p
 
 **Context** — You have ample context remaining. Do not stop, summarize, or suggest a new session over context limits. Continue.
 
-**Evidence** — Before reporting progress, audit each claim against a tool result from this session. State failures with their output, state skipped steps, and state unverified items explicitly. Don't hedge on work you have verified.
+**Evidence** — Before stating any finding, claim, or status, audit it against a tool result from this session. State failures with their output, state skipped steps, and state unverified items explicitly. Don't hedge on what you have verified.
 
-**Assess-only** — When I'm describing a problem or thinking out loud rather than requesting a change, the deliverable is your assessment: report findings and stop. Don't apply a fix until asked. Before any state-changing command, check that the evidence supports that specific action — a familiar-looking signal may have a different cause.
+**Assess-only** — Report your findings and stop. Do not apply a fix, edit a file, or run a state-changing command unless I ask for one. Before any command that changes state, check that the evidence supports that specific action — a familiar-looking signal may have a different cause.
 
 **Delegate** — Delegate independent subtasks to subagents and keep working while they run. Prefer long-lived subagents and async communication over blocking on each one. Intervene if a subagent drifts or lacks context. Establish a way to check your own work as you build and run it periodically, verifying against the spec with fresh subagents rather than self-critique.
 
@@ -101,12 +104,17 @@ Match the task against the triggers. Embed the matching text verbatim into the p
 | Hardest reasoning, long-horizon autonomous runs, correctness over cost | `xhigh` |
 | Ceiling test only | `max` — diminishing returns, prone to overthinking |
 
-At high and above Fable 5 over-gathers context and over-builds on routine work. IF you recommend high or xhigh → **No-overbuild** is near-mandatory.
+At high and above, Fable 5 over-gathers context and over-produces on routine work. The brake depends on what the task makes:
+
+- Builds or changes code → add **No-overbuild**. Its text is about software; don't paste it into a review or writing task.
+- Produces prose (report, audit, answer) → **Outcome-first** is already the brake. Nothing to add.
 
 ## Step 4 — Check before emitting
 
 - [ ] No request to explain, show, or narrate reasoning anywhere in the prompt
-- [ ] Four directives or fewer, each with a trigger that actually fires
+- [ ] Outcome-first (or Re-ground) is present, and never both
+- [ ] Four directives or fewer, and every other one answered its IF with a yes
+- [ ] Each directive's text reads as an instruction to Fable 5, not a condition it must first evaluate
 - [ ] No step-by-step scaffolding Fable 5 can derive itself
 - [ ] No API parameters written as prompt text
 - [ ] Whole spec is in this one prompt — nothing deferred to a follow-up turn
