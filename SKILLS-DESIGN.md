@@ -44,7 +44,7 @@ Every skill is exactly one of these. The type carries its own non-negotiable rul
 | **LOOP** | Repeats make → roast → fix until green | **Safety rails are mandatory:** a round cap, a FRESH reviewer (new context — never the maker grading its own work), and your final OK | `code-audit-loop` (the only true loop) |
 | **PIPELINE** | Ordered stages, run once through, each producing a file; stop/resume anywhere | Stages never overlap; a later stage *points back* to earlier files, never re-does them | `ideasup-flow` |
 | **BLOCK** | A small reusable helper *meant* to be called by other skills — your reuse shelf | One clear output, assumes zero context, safe to call from anywhere | `code-audit`, `doc-hygiene`, `github-sync` |
-| **DOER** | One concrete job in one area, called directly by you | Sharp "Do NOT trigger" lines so it never collides with a neighbour | `appscript`, `n8n`, `hostinger`, `benchmark`, `folder-cleaning` |
+| **DOER** | One concrete job in one area, called directly by you | Sharp "Do NOT trigger" lines so it never collides with a neighbour | `appscript`, `n8n`, `hostinger`, `benchmark`, `folder-cleaning`, `prompt-fable-5` |
 | **META** | Acts on skills themselves | Never fires during normal work | `ai-agent-harness`, `skill-creator-addon` |
 
 **Why Blocks matter most for reuse:** any skill that needs "review this", "clean the docs", or "push to GitHub" *calls the Block* — it never rewrites it. That is how the system stays small as it grows.
@@ -61,7 +61,7 @@ Two directions, handled two different ways on purpose:
 | **Upward** | "Who calls me? What already exists?" | **Not kept anywhere.** Derived on demand: search the `Uses:` lines and read the auto-built list of all skills (`skills-manifest.json`, refreshed automatically). |
 
 Today the entire call graph (who-calls-whom) is one line: `code-audit-loop → code-audit (hard dependency), doc-hygiene, github-sync`. Every other skill calls nothing.
-No central hand-kept table, no map-generator script. At 12 skills that would rot faster than it helps (that's the "YAGNI" rule — *You Aren't Gonna Need It*). How agents load skills is documented in `_AI_AGENTS/usage_skills.md` — not repeated here.
+No central hand-kept table, no map-generator script. At this scale that would rot faster than it helps (that's the "YAGNI" rule — *You Aren't Gonna Need It*). How agents load skills is documented in `_AI_AGENTS/usage_skills.md` — not repeated here.
 
 ---
 
@@ -103,7 +103,7 @@ Walked through one real use case ("a tool to help a freelancer send invoices"):
 |---|---|---|---|
 | 1 | Define the product | `ideasup-flow` | 🟡 (two stages missing: Stage 4 Business Plan and Stage 8 AI-Coder rules — not blocking) |
 | 2 | Spec → build plan | — | 🔴 **GAP #1: not built** — but `ideasup-flow` already reserves Stage 8 for this, with authoring material at `skill-ideasup-flow/references/pipeline-source-spec.md` |
-| 3 | Build phase by phase | `code-audit-loop` | 🟡 Built but unfinished (3 items in `skill_plan.md`), never tested on a real project |
+| 3 | Build phase by phase | `code-audit-loop` | 🟡 Items 1+2 done (`8c28d09`); only item 3 open — never yet tested on a real project |
 | 4 | Stop over-engineering | scattered advice | 🔴 **GAP #2: no check verifies it** — the weakest point vs Goal 3 |
 | 5 | Publish / deploy | `github-sync` + `hostinger` | ✅ |
 | 6 | Route to the right skill | manifest + trigger lines | ✅ |
@@ -116,7 +116,7 @@ Legend: ✅ done · 🟡 in progress · 🔴 missing.
 ## 8. The plan (in order — no new machinery)
 
 1. **This rewrite.** ✅ (this document).
-2. **Finish `code-audit-loop`** — the 3 items in `skill_plan.md` (the last of which is the live test on project D-1b).
+2. **Finish `code-audit-loop`** — items 1+2 are done; only item 3 remains: the live test on project D-1b.
 3. **Add a "roast" checklist to `code-audit`:** reuse checked? over-engineered? scope crept in silently? → **closes GAP #2.**
 4. **Build the missing Spec → Plan step** — this is likely `ideasup-flow`'s reserved Stage 8; check `skill-ideasup-flow/references/pipeline-source-spec.md` and decide reuse-vs-new before building anything → **closes GAP #1.**
 5. **Wire the section-5 birth rules into `skill-creator-addon`** (type declaration + Blocks-first collision check), plus one clause: any skill that spawns a fresh helper must put `AGENTS-canonical.md` in that helper's read-first list (fresh helpers start with zero context; the main session gets the canonical automatically, helpers don't).

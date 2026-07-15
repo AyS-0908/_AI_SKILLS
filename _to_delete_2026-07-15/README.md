@@ -6,13 +6,13 @@ Read `SKILLS-DESIGN.md` first for how the whole set fits together.
 
 ## Skill folders
 
-One skill per `skill-*/` folder (12 today). The generated index of all skills lives at
-`_AI_AGENTS/skills-manifest.json`.
+One skill per `skill-*/` folder. The generated index of all skills lives at
+`C:\Users\aymar\AYS_CODING\_AI_AGENTS\skills-manifest.json`.
 
 ## Publishing
 
-This folder IS the published set. Agents get the skills by pushing this repo to its remote and
-reading the generated manifest:
+This folder IS the published set. Publish with a `Sync-SkillsManifest.ps1` run — it pushes the repo
+and rebuilds the manifest agents read. See `Architecture.md` § Data Flow.
 
 https://github.com/AyS-0908/_AI_SKILLS
 
