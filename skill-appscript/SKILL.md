@@ -46,6 +46,7 @@ Open **each** row whose concern the task touches — real tasks match two or thr
 
 | The task involves… | Open |
 |---|---|
+| Building a NEW tool from scratch (full Sheets+GAS MVP) | `references/starter/` — clasp-ready skeleton (see its README) + `references/build-operate.md` (greenfield kickoff) |
 | Writing or changing code | `references/build-patterns.md` — copy-paste recipes + runnable self-checks |
 | Reviewing, debugging, or verifying code (AUDIT / DEBUG) | `references/reviewing.md` — audit checklist, debug isolation, test strategy |
 | Product/data contract, status model, schema, headers, IDs, sheet I/O, bootstrap, tenancy, config, secrets, locks, triggers, state, or logs | `references/data-sheets.md` |
@@ -55,7 +56,6 @@ Open **each** row whose concern the task touches — real tasks match two or thr
 - The four rule files (`data-sheets`, `apis-ui`, `build-operate`, `reviewing`) each hold the rule **and** its implementation together. `build-patterns.md` holds runnable code.
 - Precedence: this SKILL.md wins over a reference file; a **rule wins over a code sample**; if the user overrides explicitly, follow the user.
 - If a needed file is unavailable, continue with the fallback schema below, do not invent its content, and say what was missing only if it affected the answer.
-- `references/playbook/archive/` is historical evidence. Do **not** load it.
 
 ## GAS_RUNTIME_RULES
 

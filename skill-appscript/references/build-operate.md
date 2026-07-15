@@ -10,7 +10,7 @@
 - [MVP -> Editor add-on](#mvp---editor-add-on)
 - [Scale exit](#scale-exit)
 - [Config-driven workflow engine — admission gate](#config-driven-workflow-engine--admission-gate)
-- [Reusable assets — do not blindly copy](#reusable-assets--do-not-blindly-copy)
+- [Greenfield kickoff — a NEW tool from scratch](#greenfield-kickoff--a-new-tool-from-scratch)
 - [Retired designs — surviving decisions](#retired-designs--surviving-decisions)
 - [Out of scope](#out-of-scope)
 
@@ -46,7 +46,7 @@
 - Pick one source of truth; do not alternate unsafely between Apps Script editor changes and repository pushes.
 - Keep `.clasprc.json` out of version control. Treat its refresh token as a credential. Decide deliberately whether `.clasp.json` is private project mapping or shared non-secret configuration for the team's workflow.
 - Avoid top-level initialization that depends on another file's evaluation order; initialize lazily inside functions when needed.
-- Add authorization scopes only for shipped behavior.
+- Add authorization scopes only for shipped behavior. To stay within a narrow scope like `drive.file`, reuse resources by stored ID (properties), never by Drive-wide name search.
 - Use versioned deployments for public surfaces; validate the actual trigger creator, execute-as setting, menu, web app URL, and deployed version the operator uses.
 - Treat a missing optional scope as a visible setup gap, not permission to leave a half-built workbook.
 
@@ -81,29 +81,24 @@ Use an engine only when all are true:
 - The owner accepts a second executable source of truth in a sheet.
 - The project will build validation, guided authoring, versioning/backup, and engine tests.
 
-Otherwise stay with a coded v1. The full experimental engine design is archived and is not a reusable default.
+Otherwise stay with a coded v1. A retired experimental engine design exists in project history (AIssistant, spec-only, never code-verified); it is not a reusable default — if the gate is ever approved, inspect the real engine source, not the old spec.
 
-## Reusable assets — do not blindly copy
+## Greenfield kickoff — a NEW tool from scratch
 
-These names are leads from the source playbook, not a reusable library. **Do not copy until the real source exists, its license/ownership is clear, and its behavior passes current checks.**
+Founder-facing artifacts first (they become the code), then scaffold:
 
-| Candidate | Intended value | Default action |
-|---|---|---|
-| `00_Constants.gs` schema pattern | One schema source and derived maps | Recreate the small pattern; do not assume the named file transfers. |
-| `SheetIO.gs` | Header-name I/O, IDs, tenant filtering | Prefer existing `references/build-patterns.md`; inspect source before any larger lift. |
-| `Bootstrap.gs` | Rerunnable workbook construction | Lift only after rerun and data-preservation checks. |
-| `Config.gs` | Global/tenant config and secret-name resolution | Adapt property scope to deployment. |
-| `Log.gs` | Structured/redacted audit events | Do not inherit a fixed retention cap blindly. |
-| `ux_form.html` / `ux_confirm.html` | Repeated form and confirmation surfaces | Use only when the project has enough repeated UI to justify them. |
-| `ux_style.html` | Shared dialog styles | Skip until repeated dialogs justify a shared asset. |
-| `tools/gas_mock_run.js` | Offline execution of real `.gs` files | Verify mocks and file load behavior. |
-| Provider adapter files | Boundary-specific HTTP mapping | Copy only the relevant provider, not a generic layer. |
+1. **User story + features table** — one row per feature: `Feature | Trigger (menu path) | Input | Output | Irreversible?`.
+2. **Per-tab layout** — header row + 2 example rows per tab, each column tagged `[auto]` (code-written) or `[input]` (operator). This IS the future `SCHEMA`.
+3. **One form mockup per menu action** — first field selects the entity by NAME; the server re-resolves the ID.
+4. **Status lifecycle** — codes, legal transitions, one next action per state.
+5. **Scaffold from `references/starter/`** (clasp-ready skeleton; its README says what is ready vs to fill). Encode artifacts 2–4 into `00_Constants.gs`. Copy API patterns from `references/build-patterns.md` per provider.
+6. **Verify before handover:** `node tools/gas_mock_run.js` green, then bootstrap twice on a fresh workbook — the second run must be a no-op.
 
-Real runnable recipes now live in `references/build-patterns.md`.
+**Ground truth, not gospel:** `C:\Users\aymar\AYS_CODING\code-GO_VIRAL\src` (shipped bound tool — mid-refactor, see its `goviral_plan_module_1.md` before trusting content) and `C:\Users\aymar\AYS_CODING\code-HRIS\Code Base\apps-script` (setup/provisioning harness). Mine them for reflection on real problems; they also carry project-specific and superseded choices. The vetted, portable machinery already lives in the starter and `build-patterns.md`.
 
 ## Retired designs — surviving decisions
 
-Keep only the decision; consult the original playbook for project history.
+Each row is a design that shipped in a source project and was then removed; keep the surviving decision.
 
 | Prefer | Avoid |
 |---|---|

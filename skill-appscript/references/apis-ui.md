@@ -5,7 +5,7 @@
 ## Contents
 
 1. [External APIs](#external-apis) — rules A-04, E-01..E-08; adapter policy, response validation, retry and reconciliation, secret changes.
-2. [UI boundaries](#ui-boundaries) — rules U-01..U-05; UI trust model, surface selection, irreversible actions, result UX.
+2. [UI boundaries](#ui-boundaries) — rules U-01..U-05, F-01..F-03; UI trust model, surface selection, irreversible actions, forms/docs boundaries, result UX.
 
 ---
 
@@ -72,11 +72,9 @@ For AI output:
 | Non-idempotent write rejected before send | Retry only when the failure proves nothing was accepted. |
 | Write with ambiguous outcome | Do not retry; mark `needs_reconcile`. |
 
-Reconciliation may perform a provider read only when stable identifiers and an unambiguous lookup exist. Otherwise route the item to manual resolution; a guessed retry is unsafe.
+> This table is a pure function: `planRetry_(boundary, outcome, attempt, maxAttempts)` in `build-patterns.md` (RETRY_POLICY) returns `ok` / `retry+delay` / `fail` / `reconcile`. Branch on its result instead of re-judging per call site; each adapter still declares its own attempt cap and whether reliable reconciliation exists.
 
-Each adapter must declare its retryable failures, maximum attempts, delay policy, and whether reliable reconciliation exists. There is no universal retry cap that is correct for every provider.
-
-Mint the request ID before the external call and record it in the row, structured log, and provider idempotency header when supported.
+Reconciliation may perform a provider read only when stable identifiers and an unambiguous lookup exist; otherwise route to manual resolution — a guessed retry is unsafe. Mint the request ID before the call (E-03).
 
 ### SECRET CHANGES
 
@@ -161,6 +159,14 @@ Confirmation flow:
 Client selectors are intent, never authority. A selected stable-ID list is valid when row selection is the feature; the server must still verify every ID and reject additions/substitutions.
 
 For a web app, decide and test deployment access plus execute-as identity. Do not assume `Session.getActiveUser().getEmail()` is available, especially when the app executes as the developer.
+
+### FORMS AND DOCS BOUNDARIES
+
+| ID | Priority | Confidence | Applies when | DO | DO NOT |
+|---|---|---|---|---|---|
+| F-01 | MUST | EXTERNAL | Google Form needs a file-upload question | Have the operator add it by hand; code verifies presence by item TYPE and warns when missing. | Try to create it programmatically — the Form class has no `addFileUploadItem` method (verified against the official reference). |
+| F-02 | MUST | PROJECT_REPORTED | Locating a form's response tab | After `setDestination` + `flush`, find the new tab by diffing tab names before/after, then rename it once. | Match by `getFormUrl()` — it returns the published form id, not the file id, so URL matching is unreliable. |
+| F-03 | DEFAULT | PROJECT_REPORTED | Form questions consumed downstream | Add and verify questions keyed by their TITLE — the stable key later normalization joins on. | Rely on item order or index. |
 
 ### RESULT UX
 

@@ -86,11 +86,11 @@ Use one ordered manifest and one rerunnable build path:
 
 `ensure sheet -> ensure headers -> formats -> validations -> notes -> visibility/protection -> seed`
 
-- Create or repair; do not reset.
-- Seed only when the target contains no data rows.
-- Apply formatting/validation by header key, not column letter.
-- Change visibility/protection only for ranges the tool explicitly owns; do not undo an operator choice on every bootstrap.
-- Avoid destructive resets so operator columns, formulas, and conditional formatting survive.
+> Runnable: `references/starter/src/Bootstrap.gs` implements this pipeline (create-or-repair, `planHeaderRepair_`-driven headers, strict dropdowns, seed-if-empty, locale-aware default-sheet removal) — start there instead of rewriting it.
+
+- Create or repair; never reset — operator columns, formulas, and conditional formatting survive. Seed only when the target contains no data rows. Apply formatting/validation by header key, not column letter.
+- Collect-and-continue: a failed cosmetic step (format, note, protection, hide) becomes a returned warning; only a broken contract (rename ambiguity, duplicates, bad input) stops setup.
+- Protections are idempotent: find the tool's existing protection by its description tag and re-anchor it; never stack a new one per run. Change visibility/protection only for ranges the tool explicitly owns.
 - Install only tool-owned triggers. Track the created trigger ID/topology; handler name alone is not a unique trigger definition, and one account cannot see another account's triggers.
 
 Backfill choice:

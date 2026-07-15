@@ -5,7 +5,7 @@ meta:
   use_rule: "Load the smallest matching pattern. Do not emit unused patterns."
   self_check: "Risky stateful patterns ship a selfCheck_* function. Run it once in the editor or your offline mock; it fails loudly if the logic breaks. Model V-01 the same way in your own project."
   harness: "tools/gas_mock_run.js runs every code block here against fake Google services (Sheets/Properties/Lock/UrlFetch/ScriptApp) and asserts the claim/finalize, resume, and UrlFetch-validation behavior. Run: node references/tools/gas_mock_run.js — green means the recipes still work."
-  starter: "SCHEMA_CONSTANTS + STATUS_MACHINE + CONFIG_REQUIRED + REDACTED_LOG + SHEETS_TABLE_ADAPTER + SCRIPT_LOCK_WRAPPER + URLFETCH_JSON + CLAIM_CALL_FINALIZE + CHECKPOINT_RESUME + INSTALLABLE_TRIGGER_SETUP compose a minimal bound-Sheet MVP starter. Copy only what the task needs; replace every placeholder."
+  starter: "For a NEW tool, start from the assembled skeleton in references/starter/ (clasp-ready, harness-verified). Per-task, SCHEMA_CONSTANTS + STATUS_MACHINE + PROPERTIES_STATE + REDACTED_LOG + SHEETS_TABLE_ADAPTER + SCRIPT_LOCK_WRAPPER + URLFETCH_JSON + CLAIM_CALL_FINALIZE + CHECKPOINT_RESUME + INSTALLABLE_TRIGGER_SETUP compose the same minimal bound-Sheet MVP. Copy only what the task needs; replace every placeholder."
   skip:
     - "Generic JavaScript style advice"
     - "Generic project architecture"
@@ -23,6 +23,8 @@ pattern_index:
   CHECKPOINT_RESUME: "Bounded chunk + durable Status checkpoint + idempotent self-rescheduling continuation."
   WEBAPP_JSON_ENTRYPOINT: "Authorized doPost JSON boundary with safe response payload."
   INSTALLABLE_TRIGGER_SETUP: "Current-user-idempotent trigger installer/remover."
+  RETRY_POLICY: "Pure retry/reconcile classifier per boundary: transient reads retry, 429 backs off, ambiguous writes reconcile — never blind-retry."
+  ISO_DATE_GATE: "Due-date gating by lexicographic ISO-date compare in the workbook timezone; kills UTC/local midnight off-by-ones."
 
 ---
 
@@ -819,5 +821,118 @@ function selfCheck_resume_() {
   if (shouldStopChunk_(1, 0, 300000, 300000, 500) !== true) throw new Error('time-budget stop failed');
   if (shouldStopChunk_(1, 0, 1000, 300000, 500) !== false) throw new Error('should have continued');
   console.log('selfCheck_resume_ ok');
+}
+```
+
+---
+
+## RETRY_POLICY
+
+when:
+  - "An UrlFetchApp call failed and the code must decide: retry, fail, or reconcile (rules E-04/E-05 in apis-ui.md)."
+
+Retry is a policy decision, not an instinct — classify with this pure function
+instead of re-judging per call site. The classifier encodes the boundary table:
+transient failures on idempotent reads retry; 429 backs off with bounded
+attempts; a non-idempotent write whose outcome is ambiguous (sent, no readable
+answer) is NEVER retried — it routes to `needs_reconcile`. Each adapter still
+declares its own `maxAttempts` and may tighten (never loosen) these defaults.
+
+copy_pattern:
+```javascript
+const BOUNDARY = Object.freeze({
+  IDEMPOTENT_READ: 'idempotent_read',        // safe to repeat
+  NON_IDEMPOTENT_WRITE: 'non_idempotent_write', // repeating may duplicate the effect
+});
+
+// outcome: { transportError: boolean, status: number|null }  (status null when transport threw)
+// attempt: 1-based count of attempts already made. Returns exactly one of:
+//   {action:'ok'} | {action:'retry', delayMs} | {action:'fail'} | {action:'reconcile'}
+function planRetry_(boundary, outcome, attempt, maxAttempts) {
+  const backoffMs = Math.min(500 * Math.pow(2, attempt - 1), 8000);
+
+  if (!outcome.transportError && outcome.status >= 200 && outcome.status < 300) {
+    return { action: 'ok' };
+  }
+
+  // Ambiguous write: the request may have been accepted. Retrying risks a
+  // duplicate side effect regardless of attempts left (E-05).
+  if (boundary === BOUNDARY.NON_IDEMPOTENT_WRITE && outcome.transportError) {
+    return { action: 'reconcile' };
+  }
+
+  if (attempt >= maxAttempts) {
+    return { action: 'fail' };
+  }
+
+  // Rate limit: respect the signal, back off, bounded attempts (both boundaries).
+  if (outcome.status === 429) {
+    return { action: 'retry', delayMs: backoffMs };
+  }
+
+  // Transient server error or transport failure: retry only when repeating is safe.
+  const transient = outcome.transportError || outcome.status >= 500;
+  if (boundary === BOUNDARY.IDEMPOTENT_READ && transient) {
+    return { action: 'retry', delayMs: backoffMs };
+  }
+
+  // Everything else — 4xx (bad request/auth/quota) or a write's 5xx rejection —
+  // surfaces immediately; waiting will not help and blind-retrying a write may double it.
+  return { action: 'fail' };
+}
+
+function selfCheck_retry_() {
+  const R = BOUNDARY.IDEMPOTENT_READ;
+  const W = BOUNDARY.NON_IDEMPOTENT_WRITE;
+  if (planRetry_(R, { transportError: false, status: 200 }, 1, 3).action !== 'ok') throw new Error('2xx must be ok');
+  if (planRetry_(R, { transportError: false, status: 503 }, 1, 3).action !== 'retry') throw new Error('read 5xx must retry');
+  if (planRetry_(R, { transportError: true, status: null }, 1, 3).action !== 'retry') throw new Error('read transport error must retry');
+  if (planRetry_(R, { transportError: false, status: 401 }, 1, 3).action !== 'fail') throw new Error('read 4xx must fail fast');
+  if (planRetry_(R, { transportError: false, status: 503 }, 3, 3).action !== 'fail') throw new Error('attempt cap must fail');
+  if (planRetry_(W, { transportError: false, status: 429 }, 1, 3).action !== 'retry') throw new Error('write 429 must back off');
+  if (planRetry_(W, { transportError: false, status: 500 }, 1, 3).action !== 'fail') throw new Error('write 5xx must fail, not blind-retry');
+  if (planRetry_(W, { transportError: true, status: null }, 1, 3).action !== 'reconcile') throw new Error('ambiguous write must reconcile');
+  if (planRetry_(W, { transportError: true, status: null }, 9, 3).action !== 'reconcile') throw new Error('ambiguity beats the attempt cap');
+  const d1 = planRetry_(R, { transportError: false, status: 429 }, 1, 5).delayMs;
+  const d3 = planRetry_(R, { transportError: false, status: 429 }, 3, 5).delayMs;
+  if (!(d1 < d3)) throw new Error('backoff must grow with attempts');
+  console.log('selfCheck_retry_ ok');
+}
+```
+
+---
+
+## ISO_DATE_GATE
+
+when:
+  - "Rows are gated by a scheduled date (publish on due date, expire after date)."
+  - "Date math with Date objects risks a UTC/local midnight off-by-one."
+
+Compare ISO `YYYY-MM-DD` strings lexicographically in the WORKBOOK timezone —
+no Date arithmetic, no midnight conversions. Derive `today` once per run via
+`Utilities.formatDate(new Date(), ss.getSpreadsheetTimeZone(), 'yyyy-MM-dd')`,
+and honor a test override only in test mode so checks can pin the clock.
+
+copy_pattern:
+```javascript
+// PURE gate: due when a non-blank scheduled date is today or earlier.
+// Accepts full ISO timestamps too — only the first 10 chars are compared.
+function isDue_(scheduledIso, todayIso) {
+  const scheduled = String(scheduledIso || '').slice(0, 10);
+  return scheduled !== '' && scheduled <= String(todayIso).slice(0, 10);
+}
+
+function todayIso_() {
+  const tz = SpreadsheetApp.getActiveSpreadsheet().getSpreadsheetTimeZone();
+  return Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd');
+}
+
+function selfCheck_isDue_() {
+  if (isDue_('2026-07-14', '2026-07-15') !== true) throw new Error('past date must be due');
+  if (isDue_('2026-07-15', '2026-07-15') !== true) throw new Error('today must be due');
+  if (isDue_('2026-07-16', '2026-07-15') !== false) throw new Error('future date must not be due');
+  if (isDue_('', '2026-07-15') !== false) throw new Error('blank must never be due');
+  if (isDue_('2026-07-15T23:59:00.000Z', '2026-07-15') !== true) throw new Error('timestamp must gate by its date part');
+  console.log('selfCheck_isDue_ ok');
 }
 ```

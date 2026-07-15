@@ -189,6 +189,8 @@ run('selfCheck_headerRepair_', () => ctx.selfCheck_headerRepair_());
 run('selfCheck_redact_', () => ctx.selfCheck_redact_());
 run('selfCheck_stale_', () => ctx.selfCheck_stale_());
 run('selfCheck_resume_', () => ctx.selfCheck_resume_());
+run('selfCheck_retry_', () => ctx.selfCheck_retry_());
+run('selfCheck_isDue_', () => ctx.selfCheck_isDue_());
 
 // 2) SHEETS_TABLE_ADAPTER: header-keyed read + missing-header guard.
 run('readTable_ header map', () => {
