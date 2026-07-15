@@ -45,6 +45,12 @@ A bare `git push` does NOT publish: it leaves the manifest stale. Agents fetch `
 
 - Do not use the old Google Drive / Apps Script cockpit unless the user explicitly revives it.
 
+## Gotchas
+
+- Claude.ai rejects `.skill` archives whose ZIP entries use Windows `\` path
+  separators. Always build packages through `Sync-SkillsManifest.ps1`, which
+  writes portable `/` entry paths; do not package them with `Compress-Archive`.
+
 ## Agent Ritual
 
 0. `C:\Users\aymar\AYS_CODING\_AI_AGENTS\AGENTS-canonical.md`: guidelines for any AI agents in any projects.
