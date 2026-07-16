@@ -21,8 +21,8 @@ status: active
   IF concise rationale, evidence, or checks improve the result -> ask for them.
 - Preserve every valid user constraint. Flag conflicts instead of silently
   rewriting them.
-- Keep prompts readable, but foster AI understanding. Remove duplicated reminders
-  and instructions that do not change likely model behavior.
+- Keep prompts readable, but foster AI understanding. Remove reminders and
+  instructions that do not change likely model behavior. Keep prompts concise. 
 - IF a selected model reference cannot be read, is empty, or appears corrupted
   -> record the failure, notify the user, and use only the shared rules below.
 - IF official model documentation cannot be checked or returns an error ->
@@ -56,17 +56,15 @@ Choose exactly one route before writing:
    ELSE -> return the ready-to-use prompt in one code block.
 
 IF reviewing an existing prompt:
-
-- Preserve requirements; find conflicts, repetition, unclear inputs, and lines
-  that do not change behavior.
+- Preserve requirements; find conflicts, repetition, unclear inputs, lines
+  that do not change behavior, and obvious useless instructions for an AI.
 - IF changes are minor -> provide exact replacement text. ELSE -> provide the
   complete revised prompt.
 - Explain only material changes; do not force a ceremonial user pause.
 
 ## Shared prompt architecture
 
-For each field, IF it adds value -> include it. ELSE -> omit it:
-
+For each field, **IF** it adds value -> include it. ELSE -> omit it:
 - **Goal** - the result to produce.
 - **Context** - background that affects the result.
 - **Input** - source material, data, files, or placeholders.
@@ -90,4 +88,4 @@ For each field, IF it adds value -> include it. ELSE -> omit it:
 - [ ] Inputs are clearly separated from instructions.
 - [ ] No request for hidden reasoning or chain of thought appears.
 - [ ] Named-model advice is verified or clearly marked unverified.
-- [ ] The prompt is readable and no longer than the task needs.
+- [ ] The prompt is readable, concise, not verbose and no longer than the task needs.
