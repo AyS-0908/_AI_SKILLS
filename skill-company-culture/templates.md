@@ -76,7 +76,7 @@ Sustain:
 
 ```txt
 Objective:
-Define the few behaviours Dapple must preserve or change as it grows.
+Define the few behaviours the company must preserve or change as it grows.
 
 Agenda:
 1. What business outcome should culture support?

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Nestor Reflection"
+  short_description: "Run validated strategic reflection pipelines"
+  default_prompt: "Use $nestor-reflection to structure and run this reflection from scope to final report."

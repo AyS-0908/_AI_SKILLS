@@ -1,6 +1,6 @@
 # Progress.md - AI Skills
 
-Last updated: 2026-07-15
+Last updated: 2026-07-17
 
 ## Current Objective
 
@@ -9,6 +9,11 @@ System design DECIDED and published in `SKILLS-DESIGN.md` (read that first). `co
 ## Done (recent skills work)
 
 Condensed: one line per change, decisions only. The narrative is in `git log`; each skill's own rules live in its `SKILL.md`.
+
+- 2026-07-17: Corrected `company-culture` so every new engagement summarizes and confirms known context, asks no more than three material questions, and waits before drafting; created `hr-strategy-roadmap` as a guided DOER that links business priorities to workforce implications, checks employer foundations, selects 3-5 priorities, and builds a measurable 12-month roadmap. Both passed canonical validation, deterministic acceptance checks, manual positive/near-miss trigger review, and source-to-`.dist`/Claude/Codex/manifest hash checks. `Sync-SkillsManifest.ps1 -NoPush` installed and packaged both locally; GitHub push was intentionally skipped because unrelated Nestor work is dirty.
+- 2026-07-17: Added the one-time `nestor-reflection` Google template setup: a duplicate-safe Apps Script generator creates six exact neutral Docs/Sheets templates, including real Google Doc tabs and fixed tables; the existing Form Builder remains one explicit manual bound-script step. Local schema, syntax, reconciliation, and canonical skill validation pass. A live authorized Drive run remains unproven.
+- 2026-07-17: Added `skill-nestor-reflection/references/user-guide.md`: a short, non-technical guide covering launch, validation gates, the three methods, resumption, and email safety.
+- 2026-07-17: Implemented `skill-nestor-reflection` as a guided reflection pipeline with Interviews, Data research, and Brainstorming branches; fixed Google artifact schemas, reliable-source gates, approval/resume rules, and a bound Docs Apps Script that creates one Form plus linked response Sheet with fingerprinted duplicate prevention and fault-tested recovery. Canonical skill validation and a fresh independent audit pass; the temporary harness was removed. A live Google pilot remains unproven.
 
 - 2026-07-17: Created, validated, and published `skill-company-culture` as a DOER for culture diagnosis, principles, behaviours, rituals, and rollout in 50-250-person SMBs. It uses sourced Gallup, MIT Schein, Atlassian, CIPD, and official employer guidance, with a Dapple-aware project context. Scoped GitHub sync kept unrelated `skill-nestor-reflection` planning work untouched; `Sync-SkillsManifest.ps1 -NoPush` rebuilt the manifest, global Claude/Codex mirrors, and `.dist/company-culture.skill`.
 - 2026-07-15: Merged prompt generation into one active `prompt-engineer` skill. Its short `SKILL.md` holds only the shared workflow and deterministic routing; it loads either `references/fable-5.md`, `references/sol-5-6.md`, or neither. The obsolete standalone `skill-prompt-fable-5` was removed. Addon compliance was completed as `GUIDED`: explicit IF/THEN rules, reference/documentation failure handling, manual negative-trigger checks, and navigation for the long Fable reference. Repository validation passed. The project sync ran with `-NoPush -SkipInstall`: the manifest now names only `prompt-engineer`, `.dist/prompt-engineer.skill` was built, and stale `.dist/prompt-fable-5.skill` was pruned. No generated prompt has yet been executed by Fable 5.
@@ -37,12 +42,14 @@ Condensed: one line per change, decisions only. The narrative is in `git log`; e
 3. **UNCOMMITTED `skill-appscript` work, not from the doc pass:** 6 modified (`SKILL.md`; `references/`: `apis-ui.md`, `build-operate.md`, `build-patterns.md`, `data-sheets.md`, `tools/gas_mock_run.js`), 3 deleted (all of `references/archive/`), and an untracked `references/starter/` tree (10 files). Decide: intended work-in-progress, or an accident? Then commit or restore. Until then the `references/archive/` pointers above are broken, and the harness reports 17 checks / 13 code blocks in the working tree vs 15/11 at `d94851e`. NOTE: the 3h sync task auto-commits (`git add -A`) — this will publish itself.
 4. Optional: `SKILLS-DESIGN.md` §7/§8 carry live state that duplicates this file — it is why both drifted, and "item 3 open" now lives in 4 places. Both are accurate today; pointing them here instead is a structural call, not a fix.
 5. Open thread on `skill-appscript`: decide what else to make deterministic. Rule tables (A/P/S/D/T/C/U/E/V) carry an "applies when" gate + DO/DO NOT with no executable check; SPEC mode has no template; fallback output schemas permit superficial compliance (only AUDIT forces proof via `evidence_gate`).
+6. Run `TemplateGenerator.js` once in an authorized Google account, bind `FormBuilder.js` to the generated Interview Working Doc, then run one live `nestor-reflection` Survey pilot. Local checks pass, but live template generation, authorization, Form creation, response linking, and Gmail drafts are not yet proven end to end.
+7. Run the first real Dapple prompts for `company-culture` and `hr-strategy-roadmap`. Confirm each first response summarizes known context, asks for confirmation, asks at most three missing questions, and does not draft the substantive deliverable. Upload the two `.dist` packages manually to Claude.ai Settings > Skills when desired.
 
 ## Last Verification
 
-- Date: 2026-07-15
-- Method: `doc-hygiene` pass — code+git anchor, 90-agent audit (81 raw → 52 confirmed, 29 refuted), then three fresh-context auditor rounds on the applied diff.
-- Result: all three rounds FAIL (7, 9, 8 defects), each fixed. Self-written pointers resolve.
+- Date: 2026-07-17
+- Method: Scoped validation of `company-culture` and `hr-strategy-roadmap`: canonical validator, 16 deterministic acceptance checks, 8 near-miss trigger checks by inspection, diff hygiene, and SHA-256 comparisons across source, `.dist`, Claude, Codex, and manifest.
+- Result: Both skills are locally green and installed. GitHub push was intentionally skipped because unrelated work is dirty; no fresh-agent test was run because the user explicitly prohibited subagents.
 
 ## Known Risks
 
