@@ -14,6 +14,13 @@ description: >
 
 # GOOGLE_APPS_SCRIPT_SKILL
 
+## GOTCHAS
+
+- IF a local/project read is empty or incomplete, stop, report it, and verify the path, script ID, access, and encoding; never treat an empty read as an empty project.
+- IF a `clasp` or Apps Script API target, authorization, or push check fails, log the non-secret error, notify the user, and stop; never guess another target or deploy from an unverified source state.
+- Before a full-project push, verify the exact script ID and source commit because Apps Script content updates replace the target project's files.
+- IF an external API has a transport, semantic, or response-shape error, log non-secret context, notify the user, and stop or use only an explicitly safe fallback.
+
 This Skill assumes AGENTS.md already governs global coding behavior. Do not restate global coding rules here.
 
 ## ROLE
@@ -104,7 +111,7 @@ Config, state, quotas, jobs, and logs:
 
 Use the matching rule file for depth; if it is unavailable, at minimum cover these fields.
 
-SPEC: Objective · Scope_In · Scope_Out · Bound_Container · Sheets_And_Headers · Data_Model · Properties_And_Config · Triggers · Workflows · Business_Rules · Files · Functions · Authorization_And_Scopes · External_APIs · Error_Handling · Phase_Plan · Validation · Risks · Assumptions
+SPEC: Objective · Scope_In · Scope_Out · Bound_Container · Sheets_And_Headers · Data_Model · Properties_And_Config · Triggers · Workflows · Business_Rules · Files · Functions · Authorization_And_Scopes · External_APIs · Distribution_And_Update_Model · Error_Handling · Phase_Plan · Validation · Risks · Assumptions
 
 BUILD: Phase · Files_Impacted · Create_Or_Modify · Code · Insert_Where · Dependencies · Apps_Script_Services_Used · Required_Enablement · Validation_Checks · Basic_Tests · Assumptions
 
@@ -122,4 +129,5 @@ Before answering, verify:
 - Google service calls are minimized where code is involved.
 - Machinery matches need: no lock, claim/finalize, library split, or extra files beyond what the task's scale and side effects require — prefer the lightest safe pattern.
 - Trigger, concurrency, auth, and deployment risks considered when relevant.
+- For a multi-user tool, the SPEC selects a distribution/update model and defines source of truth, update classes, rollout, rollback, visible version/health, trust boundary, trigger owner, and add-on exit signal.
 - User can validate through Apps Script editor, execution logs, spreadsheet UI, web app URL, or controlled trigger.

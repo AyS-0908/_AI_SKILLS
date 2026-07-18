@@ -7,6 +7,7 @@
 - [Architecture rung](#architecture-rung)
 - [Long-running & resumable jobs](#long-running--resumable-jobs)
 - [Deployment & source control](#deployment--source-control)
+- [Multi-user distribution gate](#multi-user-distribution-gate)
 - [MVP -> Editor add-on](#mvp---editor-add-on)
 - [Scale exit](#scale-exit)
 - [Config-driven workflow engine — admission gate](#config-driven-workflow-engine--admission-gate)
@@ -20,7 +21,7 @@
 |---|---|---|---|---|---|
 | A-02 | DEFAULT | PROJECT_REPORTED + OBSERVED | New stateful tool | Prefer a coded v1 for state, side effects, and integration logic. Keep a formula prototype only when its calculation ownership and limitations are explicit. | Start with an engine because it may be useful later, or silently make a prototype formula part of the production contract. |
 | A-03 | WHEN | SPEC | Workflow architecture | Use a config-driven engine only when the owner must create and frequently edit many similar workflows without redeployment. | Ship the unfinished engine for one stable workflow. |
-| A-06 | DEFAULT | SYNTHESIZED | Sheet-led MVP targets a future add-on | Keep bound-project menus/triggers thin and put reusable business logic behind a small versioned library API during multi-user MVP testing. Target a Sheets Editor add-on when the product needs active-document context. | Treat library use by MVP users as proof of add-on installation, authorization, UI, or final runtime performance. |
+| A-06 | WHEN | EXTERNAL + PROJECT_REPORTED | A Sheets tool will serve several operators | First classify the workbook lifecycle, then select a replaceable template, managed bound-project fleet, versioned library, or Editor add-on through the distribution gate below. Keep Git/`clasp` source control separate from this runtime choice. | Choose by code-file count, treat `clasp` and a library as alternatives, or use a library only to obtain automatic updates. |
 
 > Irreversible-action planning lives in the product contract (`data-sheets.md`, rule P-03); the confirmation-flow how-to is in `apis-ui.md` (IRREVERSIBLE ACTIONS).
 
@@ -50,16 +51,70 @@
 - Use versioned deployments for public surfaces; validate the actual trigger creator, execute-as setting, menu, web app URL, and deployed version the operator uses.
 - Treat a missing optional scope as a visible setup gap, not permission to leave a half-built workbook.
 
+## Multi-user distribution gate
+
+`clasp` answers **how the owner develops and synchronizes source**. The rows below answer **how operators receive and run the product**. Use both decisions; never collapse them into “`clasp` versus Library.”
+
+### 1. Classify the workbook before choosing
+
+| Signal | Choose | Avoid |
+|---|---|---|
+| Generated workbook is disposable, contains no durable operator state, and needs no continuing automation | **Replaceable template:** version the master; create future outputs from the new version; leave old outputs alone. | Fleet updates or migration machinery for outputs that can simply be regenerated. |
+| Each workbook remains in daily use and holds operator data, config, secrets, or triggers | **Managed bound-project fleet** for a controlled pilot; target an add-on when self-service becomes necessary. | Replacing the workbook and losing or migrating durable state. |
+| Two or more consuming script projects share one stable core but retain different container-specific code | **Versioned Library**, with thin coarse calls and deliberate consumer upgrades. | A Library whose only purpose is “automatic updates,” or a chatty Library on latency-sensitive paths. |
+| Users must install independently, the owner cannot retain workbook editor access, or Marketplace distribution is now justified | **Editor add-on.** | Extending a trusted-editor fleet beyond its accepted trust/support boundary. |
+
+If a generator's **master workbook** is durable but its generated outputs are disposable, manage only the master with Git/`clasp`; do not enroll the outputs in a fleet.
+
+### 2. Define the update contract in every multi-user SPEC
+
+| Required decision | Minimum contract |
+|---|---|
+| Source of truth | One Git commit/release owns code. Never maintain competing editor and repository versions. |
+| Durable state | State what lives per workbook: operator data, configuration, secrets, IDs, triggers, and generated artifacts. Keep it outside centrally overwritten code. |
+| Code-only update | Push one audited commit to canary. IF version, health, or one critical workflow fails, stop and do not promote. Otherwise push the same commit to the fleet; rollback = redeploy the previous known-good commit. |
+| Workbook structure/data update | Before live users, prefer a fresh copy. After durable user data exists, use a versioned, idempotent, rerunnable, non-destructive migration with backup, live verification, and restore/rollback steps; a code push alone is insufficient. |
+| New authorization scope | Declare the scope delta and reason. Have a canary operator reauthorize and verify the affected workflow before rollout; give every operator the exact reauthorization step. |
+| Trigger/config update | Have the designated operator run a versioned setup/repair action; verify the intended trigger count, creator account, timezone, configuration, and last successful run. |
+| Trust boundary | State who can edit/read each workbook and code, whether the owner can access workbook data or secrets, and what the operator explicitly accepts. |
+| Release control | Name canary target(s), promotion check, fleet group, previous known-good commit, and rollback command/process. Never push an unaudited source state. |
+| Observability | Expose a product version and a user-runnable health result; provide a source-vs-target drift/status check for a fleet. Ask for the version before support diagnosis. |
+| Trigger ownership | Name one designated account per workbook for installable-trigger setup and health checks; record timezone, expose the last successful run, and surface trigger failure to the operator. |
+| Capacity proof | Test the largest expected workload per operator/account, not only the total number of workbooks. |
+| Add-on exit signal | Move when self-service install, zero-action centralized updates, reduced owner access, or fleet support cost outweighs add-on conversion/review cost. |
+
+### 3. Managed bound-project fleet invariants
+
+- Keep shipped code byte-identical across targets; exclude test-only files deliberately.
+- Keep global catalogs/defaults that are identical for every operator in code. Keep per-workbook data, config, IDs, and secrets in their approved per-workbook stores; never put secrets in shipped source.
+- Treat a fleet push as a full-project replacement: prohibit per-workbook code customization and say so during onboarding.
+- Keep the target registry private and free of secrets; map each stable script ID to a human label, workbook ID/URL, canary/fleet group, expected version, trigger owner, and timezone.
+- Push one audited commit to canary, verify version + health + one critical workflow, then promote the same commit to the fleet.
+- Roll back by redeploying the previous known-good Git commit. Do not invent a second release registry when Git already owns history.
+- Run drift/status checks before rollout and support work; fix centrally, never patch one operator's code copy.
+
+### 4. Library admission gate
+
+Use a Library only when all are true:
+
+- At least two consuming script projects need one stable core while retaining different container-specific code. IF consumers should ship byte-identical full code, use a fleet instead.
+- Consumers can pin a tested version and upgrade deliberately; production does not use HEAD/development mode.
+- Public calls are coarse enough that Library latency is acceptable.
+- Ownership of properties, cache, locks, triggers, and UI/container calls is explicit and live-tested from a consumer.
+- Consumer-specific menus, triggers, authorization, and workbook wiring remain outside the Library.
+
+Otherwise keep the code inside each managed bound project. A future add-on may reuse the same internal service boundaries without preserving the Library as its runtime boundary.
+
 ## MVP -> Editor add-on
 
 Rule `A-06` governs this transition and lives in the [Architecture rung](#architecture-rung) section above.
 
 When a bound MVP must be tested by about 20 users before becoming a Sheets Editor add-on:
 
-- Put reusable business rules and service adapters behind one small versioned library identifier/namespace.
-- Keep `onOpen`, `onEdit`, installable-trigger handlers, menus, and workbook-specific wiring in the consuming project; they call the library's public API.
-- Expose a few coarse methods such as `Tool.getStatus()` or `Tool.runAction(input)`. End private library functions with `_`; avoid chatty per-field library calls because libraries add execution latency.
-- Pin consumers to a tested library version and upgrade deliberately. Give every tester the access required to load the library.
+- Keep `onOpen`, `onEdit`, installable-trigger handlers, menus, and workbook-specific wiring thin. Keep reusable business rules and service adapters decoupled from active-workbook/UI state, whether they ship inside the bound project or through an admitted Library.
+- Prefer a managed full-code fleet for a controlled 20–50-user pilot when workbooks are durable, operators accept owner editor access, and rapid canary/rollback matters more than self-service installation.
+- If the Library admission gate passes, expose a few coarse methods such as `Tool.getStatus()` or `Tool.runAction(input)`, pin a tested version, and give testers the required Library access.
+- Before Marketplace publication, use a standalone add-on project with a standard Google Cloud project; declare and review scopes, test install/authorization states, decide per-user versus per-document storage and secrets, and validate menus/UI plus the release-update path.
 - Test the future Editor add-on separately through an Editor add-on test deployment. Library usage does not exercise installation, authorization lifecycle, menu/sidebar behavior, or Marketplace packaging.
 - Do not assume the library must remain the final add-on runtime boundary. Keep it only if measured latency and deployment ergonomics remain acceptable.
 - Editor add-on test deployments do not support installable triggers; validate trigger-dependent behavior through a separate controlled path.
