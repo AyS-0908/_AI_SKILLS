@@ -58,7 +58,7 @@ triggers:
    ```powershell
    python "<skill>/scripts/git_sync.py" commit-push "<repo>" --message "<msg>" --files "<file1>" "<file2>"
    ```
-6. IF the push published a skill (repo is the skills workbench `_AI_SKILLS` and the commit touched any `skill-*/SKILL.md`), propagate it to every agent in the same turn — do not leave it for the 3-hour timer:
+6. IF the push published any part of a skill (repo is the skills workbench `_AI_SKILLS` and the commit touched any path under `skill-*`, including `SKILL.md`, `references/`, `scripts/`, or `assets/`), propagate it to every agent in the same turn — do not leave it for the 3-hour timer:
    ```powershell
    pwsh -NoProfile -File "C:\Users\aymar\AYS_CODING\_AI_AGENTS\scripts\Sync-SkillsManifest.ps1" -Force
    ```
