@@ -1,6 +1,6 @@
 # Progress.md - AI Skills
 
-Last updated: 2026-07-17
+Last updated: 2026-07-18
 
 ## Current Objective
 
@@ -9,6 +9,8 @@ System design DECIDED and published in `SKILLS-DESIGN.md` (read that first). `co
 ## Done (recent skills work)
 
 Condensed: one line per change, decisions only. The narrative is in `git log`; each skill's own rules live in its `SKILL.md`.
+
+- 2026-07-18: Updated `prompt-engineer/references/sol-5-6.md` from current official GPT-5.6 and ChatGPT prompting guidance. The reference now targets desktop/web use, favors lean outcome-led prompts, adds action/approval boundaries, source and input guidance, concrete style control, and final checks, while excluding API-only configuration. Canonical skill validation and manual lint passed; no live GPT-5.6 forward-test was run for this reference-only revision.
 
 - 2026-07-17: Corrected `company-culture` so every new engagement summarizes and confirms known context, asks no more than three material questions, and waits before drafting; created `hr-strategy-roadmap` as a guided DOER that links business priorities to workforce implications, checks employer foundations, selects 3-5 priorities, and builds a measurable 12-month roadmap. Both passed canonical validation, deterministic acceptance checks, manual positive/near-miss trigger review, and source-to-`.dist`/Claude/Codex/manifest hash checks. `Sync-SkillsManifest.ps1 -NoPush` installed and packaged both locally; GitHub push was intentionally skipped because unrelated Nestor work is dirty.
 - 2026-07-17: Added the one-time `nestor-reflection` Google template setup: a duplicate-safe Apps Script generator creates six exact neutral Docs/Sheets templates, including real Google Doc tabs and fixed tables; the existing Form Builder remains one explicit manual bound-script step. Local schema, syntax, reconciliation, and canonical skill validation pass. A live authorized Drive run remains unproven.
@@ -47,9 +49,9 @@ Condensed: one line per change, decisions only. The narrative is in `git log`; e
 
 ## Last Verification
 
-- Date: 2026-07-17
-- Method: Scoped validation of `company-culture` and `hr-strategy-roadmap`: canonical validator, 16 deterministic acceptance checks, 8 near-miss trigger checks by inspection, diff hygiene, and SHA-256 comparisons across source, `.dist`, Claude, Codex, and manifest.
-- Result: Both skills are locally green and installed. GitHub push was intentionally skipped because unrelated work is dirty; no fresh-agent test was run because the user explicitly prohibited subagents.
+- Date: 2026-07-18
+- Method: Official-source review of the GPT-5.6 model guidance and ChatGPT prompting guide; scoped diff review; canonical validation of `prompt-engineer`; manual GUIDED-skill lint against the skill-creator addon gates.
+- Result: `prompt-engineer` is locally green and the source reference was published to GitHub through a scoped commit on `main`. Packaging and agent installation were not run in this task; the scheduled sync will propagate the update.
 
 ## Known Risks
 
