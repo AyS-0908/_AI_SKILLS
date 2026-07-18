@@ -10,7 +10,7 @@ System design DECIDED and published in `SKILLS-DESIGN.md` (read that first). `co
 
 Condensed: one line per change, decisions only. The narrative is in `git log`; each skill's own rules live in its `SKILL.md`.
 
-- 2026-07-18: Fixed the recurring `.dist` propagation gap in `github-sync`: a skill publish now means any changed path under `skill-*` (`SKILL.md`, references, scripts, or assets), not only `SKILL.md`. This closes the mismatch introduced when packaging expanded to full skill folders while the older trigger stayed narrow.
+- 2026-07-18: Fixed the recurring `.dist` propagation gap in `github-sync`: a skill publish now means any changed path under `skill-*` (`SKILL.md`, references, scripts, or assets), not only `SKILL.md`. This closes the mismatch introduced when packaging expanded to full skill folders while the older trigger stayed narrow. Published as `53189d2`; the canonical sync then refreshed the manifest, both agent mirrors, and all 16 `.dist` packages.
 
 - 2026-07-18: Updated `prompt-engineer/references/sol-5-6.md` from current official GPT-5.6 and ChatGPT prompting guidance. The reference now targets desktop/web use, favors lean outcome-led prompts, adds action/approval boundaries, source and input guidance, concrete style control, and final checks, while excluding API-only configuration. Canonical skill validation and manual lint passed; no live GPT-5.6 forward-test was run for this reference-only revision.
 
@@ -53,7 +53,7 @@ Condensed: one line per change, decisions only. The narrative is in `git log`; e
 
 - Date: 2026-07-18
 - Method: Root-cause history review; scoped diff check; canonical validation of `github-sync`; manual RIGID-skill lint against the skill-creator addon gates.
-- Result: The source trigger now covers the complete skill folder, closing the reference/script/asset propagation gap. Unrelated dirty `skill-appscript` files remain untouched.
+- Result: The source and installed `github-sync` trigger now cover the complete skill folder. All 16 packages rebuilt successfully, including the current `prompt-engineer.skill`; GitHub and the local worktree are synchronized.
 
 ## Known Risks
 
