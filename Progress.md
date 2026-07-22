@@ -1,6 +1,6 @@
 # Progress.md - AI Skills
 
-Last updated: 2026-07-18
+Last updated: 2026-07-22
 
 ## Current Objective
 
@@ -9,6 +9,8 @@ System design DECIDED and published in `SKILLS-DESIGN.md` (read that first). `co
 ## Done (recent skills work)
 
 Condensed: one line per change, decisions only. The narrative is in `git log`; each skill's own rules live in its `SKILL.md`.
+
+- 2026-07-22: Tightened `prompt-engineer` after a Fable 5 forward-test: explicit structural-refactor requests and diagnosed instruction dispersion may now override minimal-diff editing, and a fresh reviewer may return PASS only when all four gates pass, including measured length. Canonical validation and diff checks passed.
 
 - 2026-07-18: Fixed the recurring `.dist` propagation gap in `github-sync`: a skill publish now means any changed path under `skill-*` (`SKILL.md`, references, scripts, or assets), not only `SKILL.md`. This closes the mismatch introduced when packaging expanded to full skill folders while the older trigger stayed narrow. Published as `53189d2`; the canonical sync then refreshed the manifest, both agent mirrors, and all 16 `.dist` packages.
 

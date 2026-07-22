@@ -11,7 +11,8 @@ Apply this file only when the requested target is OpenAI GPT-5.6 Sol.
 
 ## GPT-5.6 adjustments
 
-- Keep prompts lean and outcome-led. State each instruction once; remove roles,
+- Use the shared prompt architecture and behavior decisions from `SKILL.md`.
+- Keep prompts lean and outcome-led. State each instruction once; omit roles,
   examples, reminders, and steps unless they change the result.
 - Trust GPT-5.6 to infer routine methods. Describe the process only when its
   order, method, or approval point is itself a requirement.
